@@ -6,16 +6,24 @@
   <title>不想看书</title>
   <!-- Set the favicon -->
   <link rel="icon" href="https://hub.gitmirror.com/https://raw.githubusercontent.com/kanpianer/bxks/refs/heads/main/favicon.svg" type="image/svg+xml" />
-  <!-- Link to custom font -->
-  <link href="https://raw.githubusercontent.com/kanpianer/bxks/refs/heads/main/wtx.ttf" rel="stylesheet" type="text/css" />
+    <!-- 引入 Google Fonts 的 Road Rage 字体 -->
+  <link href="https://googledonts.private.coffee/css2?family=Freckle+Face&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
   <style>
-    /* Apply custom font */
-    @font-face {
-      font-family: 'CustomFont';
-      src: url('https://hub.gitmirror.com/https://raw.githubusercontent.com/kanpianer/bxks/refs/heads/main/wtx.ttf') format('truetype');
+    .Freckle-Face-text {
+      font-family: 'Freckle Face', cursive;
+      font-size: 25px;
+      color: #222;
+      text-align: center;
+      margin-top: 20px;
     }
+    .zhi-mang-xing-text {
+      font-family: "Zhi Mang Xing", cursive;
+      font-weight: 400;
+      font-style: normal;
+    }
+
     body {
-      font-family: 'CustomFont', sans-serif; /* Set font */
+      font-family: 'Zhi Mang Xing', sans-serif; /* Set font */
       text-align: center;
       background-color: #f9f9f9;
       margin: 0;
@@ -27,9 +35,9 @@
       color: #222;
       margin: 8px 0 12px;
       line-height: 1.2;
-      font-size: 45px; /* Changed to match h4 size */
+      font-size: 55px; /* Changed to match h4 size */
     }
-    .message { font-size: 22px; color: #555; margin: 12px 0 24px; }
+    .message { font-size: 32px; color: #555; margin: 12px 0 24px; }
     .homepage-link {
       display: inline-block;
       font-size: 24px;
@@ -55,6 +63,7 @@
       您通往知识和文化的门户<br>
       每个人都可以使用<br>
     </div>
+    <div class="Freckle-Face-text">Z-Library</div><br>
     <a href="https://zh.zlir.ru" class="homepage-link" target="_blank" rel="noopener">带我去</a>
   </div>
 </body>
