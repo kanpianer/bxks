@@ -1,70 +1,154 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
   <title>不想看书</title>
-  <!-- Set the favicon -->
   <link rel="icon" href="https://hub.gitmirror.com/https://raw.githubusercontent.com/kanpianer/bxks/refs/heads/main/favicon.svg" type="image/svg+xml" />
-    <!-- 引入 Google Fonts 的 Road Rage 字体 -->
-  <link href="//gstatic.qaq.qa/css2?family=Freckle+Face&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Damion&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
   <style>
-    .Freckle-Face-text {
-      font-family: 'Freckle Face', cursive;
-      font-size: 25px;
-      color: #222;
+    body {
+      margin: 0;
+      height: 100vh;
+      background: black;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-family: 'Noto Serif SC', serif;
+      overflow: hidden;
       text-align: center;
-      margin-top: 20px;
-    }
-    .zhi-mang-xing-text {
-      font-family: "Zhi Mang Xing", cursive;
-      font-weight: 400;
-      font-style: normal;
+      transform: translateY(-10%); /* 整体上移% */
     }
 
-    body {
-      font-family: 'Zhi Mang Xing', sans-serif; /* Set font */
-      text-align: center;
-      background-color: #f9f9f9;
-      margin: 0;
+    h1 {
+      font-family: 'Zhi Mang Xing', cursive; /* 中文标题字体 */
+      font-weight: 400; /* Regular 400 */
+      font-size: 3.8em; /* 标题字号 */
+      margin-bottom: 20px;
     }
-    .container { padding: 56px 24px; }
-    .icon { font-size: 80px; margin-bottom: 16px; }
-    .title {
-      font-weight: 700;
-      color: #222;
-      margin: 8px 0 12px;
-      line-height: 1.2;
-      font-size: 55px; /* Changed to match h4 size */
+
+    .slogan {
+      font-size: 2.1em;
+      line-height: 1.4;
+      margin-bottom: 40px;
     }
-    .message { font-size: 32px; color: #555; margin: 12px 0 24px; }
-    .homepage-link {
-      display: inline-block;
-      font-size: 24px;
-      padding: 10px 20px;
-      margin-top: 4px;
-      border: 2px solid #333;
-      color: #333;
-      text-decoration: none;
-      border-radius: 30px;
-      transition: background-color 0.2s ease, color 0.2s ease;
+
+    .slogan div {
+      font-family: 'Zhi Mang Xing', cursive; /* 中文部分用Zhi Mang Xing */
     }
-    .homepage-link:hover { background-color: #f1f1f1; color: gray; }
+
+    .slogan div:first-child {
+      font-family: 'Damion', serif; /* 英文部分保持原字体 */
+    }
+
+    .btn {
+      padding: 0px 0px;
+      font-size: 1.5em;
+      font-family: 'Damion', serif; 
+      background-color: #222;
+      color: white;
+      border: none;
+      border-radius: 40px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      position: relative;
+    }
+
+    .btn:hover {
+      background-color: #555;
+    }
+
+    .btn:hover::after {
+      content: "https://zh.fin101.ru/";
+      position: absolute;
+      top: 120%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #222;
+      color: #fff;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 0.9em;
+      white-space: nowrap;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="icon">📖</div>
-    <h4 class="title">不想看书</h4>
-    <div class="message">
-      Your gateway to knowledge and culture<br>
-      Accessible for everyone<br>
-      <br>
-      您通往知识和文化的门户<br>
-      每个人都可以使用<br>
-    </div>
-    <div class="Freckle-Face-text">Z-Library</div><br>
-    <a href="https://zh.fra101.ru/" class="homepage-link" target="_blank" rel="noopener">带我去</a>
+  <canvas id="stars"></canvas>
+  <h1>不想看书</h1>
+  <div class="slogan">
+    <div>Your gateway to knowledge and culture
+    <br>Accessible for everyone</div>
+
+    <div>您通往知识和文化的门户
+    <br>每个人都可以使用</div>
   </div>
+  <button class="btn" onclick="window.open('https://zh.fin101.ru/', '_blank')">Z-Library</button>
+
+  <script>
+    const canvas = document.getElementById('stars');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let stars = [];
+    const numStars = 250;
+
+    for (let i = 0; i < numStars; i++) {
+      stars.push({
+        x: canvas.width / 2 + (Math.random() - 0.5) * 100,
+        y: canvas.height / 2 + (Math.random() - 0.5) * 100,
+        radius: Math.random() * 1.5,
+        alpha: Math.random(),
+        speedX: (Math.random() - 0.5) * 3.5,
+        speedY: (Math.random() - 0.5) * 3.5
+      });
+    }
+
+    function drawStars() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let star of stars) {
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,255,255,${star.alpha})`;
+        ctx.fill();
+      }
+    }
+
+    function bookOpenEffect() {
+      for (let i = 0; i < stars.length; i++) {
+        let star = stars[i];
+        if (i % 2 === 0) {
+          star.x -= star.speedX;
+        } else {
+          star.x += star.speedX;
+        }
+        star.y += star.speedY * 0.2;
+      }
+    }
+
+    function loop() {
+      drawStars();
+      bookOpenEffect();
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+
+    window.onresize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+  </script>
 </body>
 </html>
