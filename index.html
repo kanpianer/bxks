@@ -19,7 +19,6 @@
       overflow: hidden;
       text-align: center;
       transform: translateY(-10%);
-      padding: 0 1%; /* 默认左右留白 */
     }
 
     h1 {
@@ -44,20 +43,20 @@
     }
 
     .btn {
-      padding: px px;
+      padding: 0px 0px;
       font-size: 2.2em;
       font-family: 'Damion', serif;
-      background-color: #222;
+      background-color: #333;
       color: white;
       border: none;
       border-radius: 40px;
       cursor: pointer;
-      transition: background-color 0.5s;
+      transition: background-color 0.6s;
       position: relative;
     }
 
     .btn:hover {
-      background-color: #555;
+      background-color: #666;
     }
 
     .btn:hover::after {
@@ -83,48 +82,39 @@
       z-index: -1;
     }
 
-    /* 📱 手机端适配：缩小边距，放大内容 */
+    /* 📱 手机端适配 */
     @media (max-width: 600px) {
-      body {
-        padding: 0 1%; /* 两边距离更小，内容更宽 */
-      }
       h1 {
-        font-size: 3.6em; /* 标题稍微放大 */
+        font-size: 3em;
       }
       .slogan {
-        font-size: 2em;   /* slogan 放大 */
-        margin-bottom: 25px;
+        font-size: 1.5em;
+        margin-bottom: 20px;
       }
       .btn {
-        font-size: 1.4em; /* 按钮放大 */
+        font-size: 1.2em;
         padding: px px;
-        border-radius: 30px;
+        border-radius: 25px;
       }
     }
 
     /* 📟 平板端适配 */
     @media (min-width: 601px) and (max-width: 1024px) {
-      body {
-        padding: 0 4%;
-      }
       h1 {
-        font-size: 4.5em;
+        font-size: 4.2em;
       }
       .slogan {
-        font-size: 2.5em;
+        font-size: 2.2em;
         margin-bottom: 30px;
       }
       .btn {
-        font-size: 1.8em;
+        font-size: 1.6em;
         padding: px px;
       }
     }
 
     /* 💻 桌面端保持原始设计 */
     @media (min-width: 1025px) {
-      body {
-        padding: 0 5%;
-      }
       h1 {
         font-size: 5.8em;
       }
