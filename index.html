@@ -731,9 +731,6 @@
         inset 16px 0 10px -10px rgba(0, 0, 0, 0.7),
         inset 0 0 1px rgba(255, 255, 255, 0.12);
       overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
       padding: 22px 20px 24px 28px;
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
@@ -762,6 +759,44 @@
         repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.035) 0, rgba(255, 255, 255, 0.035) 1px, transparent 0, transparent 9px),
         repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.035) 0, rgba(255, 255, 255, 0.035) 1px, transparent 0, transparent 9px);
       pointer-events: none;
+    }
+
+    /* Front Cover Animated Stage & Double-Buffered Cards */
+    .cover-stage {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 2;
+    }
+
+    .cover-card {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      will-change: transform, opacity;
+      transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Upward Scrolling: Center -> Exit Up, Enter Down -> Center */
+    .cover-card.state-center {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .cover-card.state-exit-up {
+      transform: translateY(-44px);
+      opacity: 0;
+    }
+
+    .cover-card.state-enter-down {
+      transform: translateY(44px);
+      opacity: 0;
     }
 
     /* Front Cover Content Elements */
@@ -984,13 +1019,13 @@
       will-change: transform, opacity;
     }
 
-    /* Visual Synchronized Transition State */
-    .book-transitioning .cover-main-title,
-    .book-transitioning .cover-author,
-    .book-transitioning .cover-image,
-    .book-transitioning .spine-title {
-      opacity: 0;
-      transform: translateY(6px);
+    /* Book Spine Subtle Transition State */
+    .spine-title {
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      color: #d4d4d8;
+      white-space: nowrap;
+      transition: opacity 0.25s ease;
     }
 
     /* Visually Hidden Helper (Accessibility standard) */
@@ -1112,7 +1147,7 @@
       canvas#stars {
         display: none;
       }
-      .ticker-item, .cover-main-title, .cover-author, .spine-title {
+      .ticker-item, .cover-card, .spine-title {
         transition: none !important;
       }
     }
@@ -1298,25 +1333,29 @@
             <div class="book-face-front" id="book-face-front">
               <div class="book-crosshatch-bg" aria-hidden="true"></div>
               
-              <div class="cover-header">
-                <div class="cover-series-tag">Z-LIBRARY EDITION</div>
-              </div>
+              <div class="cover-stage" id="cover-stage">
+                <div class="cover-card state-center" id="cover-card">
+                  <div class="cover-header">
+                    <div class="cover-series-tag">Z-LIBRARY EDITION</div>
+                  </div>
 
-              <!-- Central Subject/Author Representative Image -->
-              <div class="cover-image-area" aria-hidden="true">
-                <img 
-                  id="cover-image" 
-                  class="cover-image" 
-                  src="assets/images/book_0.jpg" 
-                  alt="" 
-                  loading="eager" 
-                  decoding="async" 
-                />
-              </div>
+                  <!-- Central Subject/Author Representative Image -->
+                  <div class="cover-image-area" aria-hidden="true">
+                    <img 
+                      id="cover-image" 
+                      class="cover-image" 
+                      src="assets/images/book_0.jpg" 
+                      alt="" 
+                      loading="eager" 
+                      decoding="async" 
+                    />
+                  </div>
 
-              <div class="cover-footer">
-                <div class="cover-author" id="cover-author">达尔文</div>
-                <h2 class="cover-main-title" id="cover-main-title">物种起源</h2>
+                  <div class="cover-footer">
+                    <div class="cover-author" id="cover-author">达尔文</div>
+                    <h2 class="cover-main-title" id="cover-main-title">物种起源</h2>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -1439,9 +1478,7 @@
       const searchContainer = document.getElementById('search-field-container');
       const tickerStage = document.getElementById('ticker-stage');
       const bookDisplaySection = document.getElementById('book-display-section');
-      const coverMainTitle = document.getElementById('cover-main-title');
-      const coverAuthor = document.getElementById('cover-author');
-      const coverImage = document.getElementById('cover-image');
+      const coverStage = document.getElementById('cover-stage');
       const spineTitle = document.getElementById('spine-title');
 
       let currentBookIndex = 0;
@@ -1449,55 +1486,115 @@
       let isTransitioning = false;
       const CYCLE_INTERVAL = 3200; // 3.2 seconds per book
 
+      // Shuffle playlist to guarantee every book is shown in random order without consecutive duplicates
+      let shufflePool = [];
+
+      function getNextBookIndex() {
+        if (shufflePool.length === 0) {
+          const pool = Array.from({ length: BOOK_LIST.length }, (_, i) => i);
+          // Fisher-Yates shuffle
+          for (let i = pool.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [pool[i], pool[j]] = [pool[j], pool[i]];
+          }
+          // Avoid matching the currently displayed book at shuffle pool boundaries
+          if (pool[0] === currentBookIndex && pool.length > 1) {
+            const swapIdx = 1 + Math.floor(Math.random() * (pool.length - 1));
+            [pool[0], pool[swapIdx]] = [pool[swapIdx], pool[0]];
+          }
+          shufflePool = pool;
+        }
+        return shufflePool.shift();
+      }
+
+      // Preload all 40 book images for instant, flicker-free transitions
+      BOOK_LIST.forEach((_, idx) => {
+        const img = new Image();
+        img.src = `assets/images/book_${idx}.jpg`;
+      });
+
       /**
        * Cycle Prompt & 3D Book Cover Synchronously:
-       * - Old title exits upward: translateY(-26px), opacity: 0
-       * - New title enters from bottom: starts at translateY(26px), moves to translateY(0)
-       * - 3D Book Cover Title & Author update in sync
+       * Both search box title and book cover scroll upwards in sync with random book selection.
+       * - Old title & cover card exit upward: translateY(-...), opacity: 0
+       * - New title & cover card enter from bottom: starts at translateY(+...), moves to translateY(0)
        */
       function transitionToNextBook() {
         if (isTransitioning) return;
         isTransitioning = true;
 
-        const nextIndex = (currentBookIndex + 1) % BOOK_LIST.length;
+        const nextIndex = getNextBookIndex();
         const nextBook = BOOK_LIST[nextIndex];
 
-        // 1. Prepare search box ticker transition
+        // 1. Prepare search box ticker transition (moves UP)
         const currentItem = document.getElementById('ticker-item');
         const newItem = document.createElement('span');
         newItem.className = 'ticker-item state-enter-down';
         newItem.textContent = nextBook.title;
         tickerStage.appendChild(newItem);
 
-        // 2. Synchronize 3D book cover transition
-        bookDisplaySection.classList.add('book-transitioning');
+        // 2. Prepare 3D book cover transition (moves UP in sync)
+        const currentCoverCard = document.getElementById('cover-card');
+        const newCoverCard = document.createElement('div');
+        newCoverCard.className = 'cover-card state-enter-down';
+        newCoverCard.innerHTML = `
+          <div class="cover-header">
+            <div class="cover-series-tag">Z-LIBRARY EDITION</div>
+          </div>
+          <div class="cover-image-area" aria-hidden="true">
+            <img class="cover-image" src="assets/images/book_${nextIndex}.jpg" alt="" loading="eager" decoding="async" />
+          </div>
+          <div class="cover-footer">
+            <div class="cover-author">${nextBook.author}</div>
+            <h2 class="cover-main-title">${nextBook.title}</h2>
+          </div>
+        `;
+        if (coverStage) {
+          coverStage.appendChild(newCoverCard);
+        }
+
+        // 3. Spine title subtle cross-fade
+        if (spineTitle) {
+          spineTitle.style.opacity = '0';
+        }
 
         // Force browser layout reflow
         void newItem.offsetWidth;
+        if (newCoverCard) {
+          void newCoverCard.offsetWidth;
+        }
 
-        // Trigger simultaneous animations
+        // Trigger simultaneous upward animations
         if (currentItem) {
           currentItem.className = 'ticker-item state-exit-up';
         }
         newItem.className = 'ticker-item state-center';
 
-        // Update 3D Book title, author, and representative image midway
-        setTimeout(() => {
-          coverMainTitle.textContent = nextBook.title;
-          coverAuthor.textContent = nextBook.author;
-          spineTitle.textContent = nextBook.title;
-          if (coverImage) {
-            coverImage.src = `assets/images/book_${nextIndex}.jpg`;
-          }
-          bookDisplaySection.classList.remove('book-transitioning');
-        }, 180);
+        if (currentCoverCard) {
+          currentCoverCard.className = 'cover-card state-exit-up';
+        }
+        newCoverCard.className = 'cover-card state-center';
 
-        // Cleanup old element
+        // Update spine text midway and fade back in
+        setTimeout(() => {
+          if (spineTitle) {
+            spineTitle.textContent = nextBook.title;
+            spineTitle.style.opacity = '1';
+          }
+        }, 200);
+
+        // Cleanup old elements after animation completes
         setTimeout(() => {
           if (currentItem && currentItem.parentNode === tickerStage) {
             tickerStage.removeChild(currentItem);
           }
           newItem.id = 'ticker-item';
+
+          if (currentCoverCard && coverStage && currentCoverCard.parentNode === coverStage) {
+            coverStage.removeChild(currentCoverCard);
+          }
+          newCoverCard.id = 'cover-card';
+
           currentBookIndex = nextIndex;
           isTransitioning = false;
         }, 460);
