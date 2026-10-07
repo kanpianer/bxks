@@ -1,317 +1,1975 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="dark light" />
-  <title>不想看书</title>
+  <title>不想看书 - Your gateway to knowledge and culture</title>
 
   <!-- Favicon -->
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
-  <!-- Fonts (with performance hints and fallbacks) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Damion&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
+  <!-- Preconnect & LXGW WenKai Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Google Fonts: LXGW WenKai TC -->
+  <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@300;400;700&display=swap" rel="stylesheet" />
+  <!-- CDN Webfont for complete Simplified & Traditional Chinese glyph coverage -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.1.0/style.css" />
+
+  <!-- Inline theme pre-check to prevent FOUC -->
+  <script>
+    (function () {
+      try {
+        const saved = localStorage.getItem('bxks_theme');
+        if (saved === 'light') {
+          document.documentElement.setAttribute('data-theme', 'light');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      } catch (e) {}
+    })();
+  </script>
 
   <style>
-    /* Base: readable system stack with Chinese serif fallback */
-    :root {
-      /* Typographic scale tuned for device width */
-      --font-size-h1: clamp(2.4rem, 5vw, 3.6rem);
-      --font-size-slogan: clamp(1.85rem, 3.6vw, 2.6rem);
-      --font-size-btn: clamp(1rem, 2.4vw, 1.4rem);
-      --line-height-slogan: 1.4;
-      --content-max-width: min(72ch, 92vw);
-      --content-gap: clamp(16px, 3.5vw, 28px);
-      --bg: #000;
-      --fg: #fff;
-      --btn-bg: #222;
-      --btn-bg-hover: #555;
-      --btn-fg: #fff;
-      --tooltip-bg: #222;
-      --tooltip-fg: #fff;
-      --focus-ring: 2px solid #7aa2ff; /* accessible focus */
+    /* Strict Monochrome Palette: Black, White, Grays only */
+    :root,
+    [data-theme="dark"] {
+      --bg: #090a0c;
+      --fg: #f4f4f5;
+      --fg-muted: #a1a1aa;
+      --fg-subtle: #71717a;
+      
+      --search-bg: rgba(24, 24, 27, 0.85);
+      --search-border: #3f3f46;
+      --search-border-hover: #52525b;
+      --search-focus-ring: rgba(212, 212, 216, 0.22);
+      --search-focus-border: #a1a1aa;
+      
+      --btn-bg: #27272a;
+      --btn-bg-hover: #3f3f46;
+      --btn-border: #3f3f46;
+      --btn-fg: #f4f4f5;
+      
+      --icon-color: #71717a;
+      --icon-focus: #e4e4e7;
+      
+      --book-bg: #151517;
+      --book-border: #27272a;
+      --book-paper: #d4d4d8;
+      
+      --font-family: 'LXGW WenKai', 'LXGW WenKai TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     }
 
-    /* Respect prefers-color-scheme if you later add light variant; currently dark-focused */
-    @media (prefers-color-scheme: light) {
-      :root {
-        --bg: #0f1113;
-        --fg: #f6f7f9;
-        --btn-bg: #1c1f22;
-        --btn-bg-hover: #3a3f44;
-        --tooltip-bg: #1c1f22;
-        --tooltip-fg: #f6f7f9;
-      }
+    [data-theme="light"] {
+      --bg: #f5f5f7;
+      --fg: #18181b;
+      --fg-muted: #52525b;
+      --fg-subtle: #71717a;
+      
+      --search-bg: rgba(255, 255, 255, 0.95);
+      --search-border: #d4d4d8;
+      --search-border-hover: #a1a1aa;
+      --search-focus-ring: rgba(0, 0, 0, 0.12);
+      --search-focus-border: #52525b;
+      
+      --btn-bg: #18181b;
+      --btn-bg-hover: #27272a;
+      --btn-border: #18181b;
+      --btn-fg: #ffffff;
+      
+      --icon-color: #71717a;
+      --icon-focus: #18181b;
+      
+      --book-bg: #1c1c1f;
+      --book-border: #3f3f46;
+      --book-paper: #e4e4e7;
     }
 
-    /* Improve font rendering across clients */
-    html {
-      -webkit-text-size-adjust: 100%;
-      text-rendering: optimizeLegibility;
-    }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      color: var(--fg);
-      background: var(--bg);
-      font-family:
-        "Noto Serif SC",
-        ui-serif, Georgia, "Songti SC", "STSong", "Source Han Serif SC", "PingFang SC",
-        "Microsoft YaHei", "Segoe UI", system-ui, serif;
-      text-align: center;
-      overflow: hidden;
-    }
-
-    /* Centered content column for readable line length */
-    .content {
-      position: relative;
-      z-index: 1; /* above canvas */
-      max-width: var(--content-max-width);
-      padding: clamp(16px, 4vw, 32px);
-      margin-inline: auto;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: var(--content-gap);
-    }
-
-    h1 {
-      font-family: 'Zhi Mang Xing', cursive;
-      font-weight: 400;
-      font-size: var(--font-size-h1);
-      line-height: 1.15;
-      margin: 0;
-      letter-spacing: 0.02em;
-    }
-
-    .slogan {
-      font-size: var(--font-size-slogan);
-      line-height: var(--line-height-slogan);
-      margin: 0;
-      opacity: 0.92;
-    }
-    .slogan div {
-      font-family: 'Zhi Mang Xing', cursive;
-      margin-bottom: 0.5em;
-    }
-    .slogan div:first-child {
-      font-family: 'Damion', serif;
-    }
-
-    /* Button: fixed padding and accessible focus */
-    .btn {
-      padding: em 1.1em;
-      font-size: var(--font-size-btn);
-      font-family: 'Damion', serif;
-      background-color: var(--btn-bg);
-      color: var(--btn-fg);
+    /* Top-Right Theme Toggle Button (No background) */
+    .theme-toggle-btn {
+      position: fixed;
+      top: clamp(16px, 3.5vw, 24px);
+      right: clamp(16px, 3.5vw, 24px);
+      z-index: 100;
+      width: 38px;
+      height: 38px;
+      padding: 0;
       border: none;
-      border-radius: 999px;
+      background: transparent;
+      color: var(--fg-muted);
       cursor: pointer;
-      transition: background-color 0.25s ease, transform 0.08s ease;
-      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: none;
+      transition: color 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       outline: none;
       -webkit-tap-highlight-color: transparent;
-    }
-    .btn:hover {
-      background-color: var(--btn-bg-hover);
-    }
-    .btn:active {
-      transform: translateY(1px);
-    }
-    .btn:focus-visible {
-      outline: var(--focus-ring);
-      outline-offset: 3px;
+      user-select: none;
     }
 
-    /* Tooltip: visible on hover and keyboard focus */
-    .btn:hover::after,
-    .btn:focus-visible::after {
-      content: "点击访问";
-      position: absolute;
-      top: 120%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--tooltip-bg);
-      color: var(--tooltip-fg);
-      padding: 6px 10px;
+    .theme-toggle-btn:hover {
+      color: var(--fg);
+      transform: scale(1.12);
+    }
+
+    .theme-toggle-btn:hover .theme-icon {
+      transform: rotate(20deg);
+    }
+
+    .theme-toggle-btn:active {
+      transform: scale(0.9);
+    }
+
+    .theme-toggle-btn:focus-visible {
+      outline: 2px solid var(--search-focus-border);
+      outline-offset: 2px;
       border-radius: 6px;
-      font-size: 0.9em;
-      white-space: nowrap;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.35);
     }
 
-    /* Canvas background (stars) */
-    canvas {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 0;
-      background: var(--bg);
+    .theme-icon {
+      width: 20px;
+      height: 20px;
+      display: block;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+    }
+
+    /* Default (Dark theme): Show Sun Icon */
+    .theme-toggle-btn .icon-moon {
+      display: none;
+    }
+    .theme-toggle-btn .icon-sun {
       display: block;
     }
 
-    /* Reduce motion for comfort */
-    @media (prefers-reduced-motion: reduce) {
-      canvas { display: none; }
-      body { overflow: auto; }
+    /* Light Theme: Show Moon Icon */
+    [data-theme="light"] .theme-toggle-btn .icon-sun {
+      display: none;
+    }
+    [data-theme="light"] .theme-toggle-btn .icon-moon {
+      display: block;
     }
 
-    /* Small devices: ease spacing slightly */
-    @media (max-width: 380px) {
-      :root {
-        --content-gap: 18px;
+    /* Mirror Websites Dropdown (Centered directly under "不想看书") */
+    .mirror-dropdown {
+      position: absolute;
+      top: calc(100% + 10px);
+      left: 50%;
+      transform: translateX(-50%) translateY(-6px) scale(0.98);
+      min-width: 254px;
+      background: var(--search-bg);
+      border: 1px solid var(--search-border);
+      border-radius: 12px;
+      padding: 6px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.38), 0 2px 8px rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.22s ease;
+      pointer-events: none;
+      user-select: none;
+      z-index: 100;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    [data-theme="light"] .mirror-dropdown {
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Invisible hover bridge connecting title to dropdown */
+    .mirror-dropdown::before {
+      content: '';
+      position: absolute;
+      top: -14px;
+      left: 0;
+      right: 0;
+      height: 14px;
+    }
+
+    /* Visible on hover or when toggled open */
+    .brand-title-wrapper:hover .mirror-dropdown,
+    .brand-title-wrapper.is-open .mirror-dropdown {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .mirror-dropdown-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 4px;
+    }
+
+    [data-theme="light"] .mirror-dropdown-header {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+    }
+
+    .mirror-header-title {
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--fg);
+      letter-spacing: 0.04em;
+    }
+
+    .mirror-header-tip {
+      font-size: 0.68rem;
+      color: var(--fg-subtle);
+    }
+
+    .mirror-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .mirror-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 10px;
+      border-radius: 8px;
+      color: var(--fg-muted);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-family: inherit;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .mirror-link:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--fg);
+    }
+
+    [data-theme="light"] .mirror-link:hover {
+      background: rgba(0, 0, 0, 0.05);
+      color: var(--fg);
+    }
+
+    .mirror-domain {
+      letter-spacing: 0.01em;
+    }
+
+    /* "没墙" 后方纯文字展示，无框、无其他颜色强调 */
+    .mirror-rec-text {
+      font-size: 0.8rem;
+      color: inherit;
+      letter-spacing: 0.02em;
+      margin-left: 10px;
+    }
+
+    /* First-time User Hint Tooltip */
+    .title-hint-tooltip {
+      position: absolute;
+      bottom: calc(100% + 12px);
+      left: 50%;
+      transform: translateX(-50%) translateY(6px);
+      background: var(--search-bg);
+      border: 1px solid var(--search-border);
+      border-radius: 9999px;
+      padding: 5px 10px 5px 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.82rem;
+      color: var(--fg);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.32);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      white-space: nowrap;
+      z-index: 90;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s ease;
+      user-select: none;
+    }
+
+    [data-theme="light"] .title-hint-tooltip {
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.1);
+    }
+
+    .title-hint-tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 5px 5px 0 5px;
+      border-style: solid;
+      border-color: var(--search-border) transparent transparent transparent;
+    }
+
+    .title-hint-tooltip.is-visible {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translateX(-50%) translateY(0);
+      animation: hintFloat 2.6s ease-in-out infinite;
+    }
+
+    @keyframes hintFloat {
+      0%, 100% {
+        transform: translateX(-50%) translateY(0);
       }
-      .slogan { line-height: 1.5; }
+      50% {
+        transform: translateX(-50%) translateY(-4px);
+      }
     }
 
-    /* Large screens: constrain line length and avoid huge type */
-    @media (min-width: 1440px) {
-      :root {
-        --content-max-width: 68ch;
+    .hint-text {
+      font-weight: 400;
+      letter-spacing: 0.02em;
+      line-height: 1;
+    }
+
+    .hint-close-btn {
+      background: transparent;
+      border: none;
+      padding: 0 2px;
+      margin: 0;
+      color: var(--fg-muted);
+      cursor: pointer;
+      font-size: 0.82rem;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s ease;
+      outline: none;
+    }
+
+    .hint-close-btn:hover {
+      color: var(--fg);
+    }
+
+    [data-theme="light"] .search-form {
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+    [data-theme="light"] .book-floor-shadow {
+      background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.38) 0%, rgba(0, 0, 0, 0.12) 55%, transparent 75%);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100%;
+      background-color: var(--bg);
+      color: var(--fg);
+      font-family: var(--font-family);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+      overflow-x: hidden;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    /* Ambient Monochrome Canvas Background */
+    canvas#stars {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+      display: block;
+    }
+
+    /* Layout Container */
+    .app-container {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: clamp(36px, 7vh, 72px) 20px 48px;
+    }
+
+    /* Header Section */
+    .header {
+      text-align: center;
+      margin-bottom: clamp(20px, 4vh, 36px);
+      max-width: 720px;
+      user-select: none;
+    }
+
+    .brand-title-wrapper {
+      position: relative;
+      display: inline-block;
+      margin: 0 0 10px;
+    }
+
+    .brand-title {
+      font-size: clamp(2.4rem, 5.5vw, 3.8rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 0;
+      line-height: 1.15;
+      color: var(--fg);
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      transition: opacity 0.2s ease, transform 0.15s ease;
+    }
+
+    .brand-title:hover {
+      opacity: 0.88;
+    }
+
+    .brand-title:active {
+      transform: scale(0.98);
+    }
+
+    .brand-subtitle {
+      font-size: clamp(0.95rem, 2vw, 1.2rem);
+      line-height: 1.55;
+      color: var(--fg-muted);
+      margin: 0;
+      font-weight: 400;
+    }
+
+    .brand-subtitle-line {
+      display: block;
+    }
+
+    /* Search Section */
+    .search-section {
+      width: 100%;
+      max-width: 640px;
+      margin-inline: auto;
+      margin-bottom: clamp(36px, 6vh, 56px);
+      transition: width 0.3s ease;
+    }
+
+    /* Mobile: Width reduced by 1/4 (75% width) */
+    @media (max-width: 640px) {
+      .search-section {
+        width: 75%;
+      }
+    }
+
+    .search-form {
+      position: relative;
+      display: flex;
+      align-items: center;
+      background: var(--search-bg);
+      border: 1px solid var(--search-border);
+      border-radius: 9999px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      padding: 5px 6px 5px 16px;
+    }
+
+    .search-form:hover {
+      border-color: var(--search-border-hover);
+    }
+
+    /* Focus State: Direct border line highlight without outer halo */
+    .search-form:focus-within {
+      border-color: var(--search-focus-border);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    /* Magnifying Glass Indicator */
+    .search-icon-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-right: 10px;
+      color: var(--icon-color);
+      pointer-events: none;
+      transition: color 0.2s ease;
+    }
+
+    .search-form:focus-within .search-icon-wrapper {
+      color: var(--icon-focus);
+    }
+
+    .search-icon {
+      width: 19px;
+      height: 19px;
+      display: block;
+    }
+
+    /* Input & Upward-Cycling Ticker */
+    .search-field-container {
+      position: relative;
+      flex: 1;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .search-input {
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--fg);
+      font-size: 1.05rem;
+      font-family: inherit;
+      padding: 0;
+      margin: 0;
+      z-index: 2;
+    }
+
+    .search-input::-webkit-search-cancel-button,
+    .search-input::-webkit-search-decoration {
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    /* Cycling Placeholder Ticker */
+    .placeholder-ticker {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      pointer-events: none;
+      user-select: none;
+      z-index: 1;
+      transition: opacity 0.2s ease;
+    }
+
+    .search-input:not(:placeholder-shown) ~ .placeholder-ticker,
+    .search-field-container.has-value .placeholder-ticker {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .ticker-stage {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+    }
+
+    .ticker-item {
+      position: absolute;
+      left: 0;
+      color: var(--fg-subtle);
+      font-size: 1.05rem;
+      font-family: inherit;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+      will-change: transform, opacity;
+      transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Upward Scrolling: Center -> Exit Up, Enter Down -> Center */
+    .ticker-item.state-center {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .ticker-item.state-exit-up {
+      transform: translateY(-26px);
+      opacity: 0;
+    }
+
+    .ticker-item.state-enter-down {
+      transform: translateY(26px);
+      opacity: 0;
+    }
+
+    /* Minimalist Action Button (Icon Only, Gray Tone) */
+    .search-btn {
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      background: var(--btn-bg);
+      color: var(--btn-fg);
+      border: 1px solid var(--btn-border);
+      border-radius: 50%;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s ease, transform 0.12s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    .search-btn:hover {
+      background: var(--btn-bg-hover);
+      border-color: #52525b;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .search-btn:active {
+      transform: scale(0.94);
+    }
+
+    .search-btn:focus-visible {
+      box-shadow: 0 0 0 3px var(--search-focus-ring);
+    }
+
+    .btn-icon {
+      width: 18px;
+      height: 18px;
+      display: block;
+      stroke-width: 2.4;
+    }
+
+    /* 
+     * ==========================================
+     * 3D Floating Book Stage & Presentation
+     * Anti-Aliased Photorealistic Monochrome Book
+     * ==========================================
+     */
+    .book-display-section {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      perspective: 1200px;
+      perspective-origin: 50% 40%;
+      margin-top: 10px;
+      cursor: grab;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: pan-y;
+    }
+
+    .book-display-section.is-dragging {
+      cursor: grabbing;
+    }
+
+    .book-stage {
+      position: relative;
+      width: 240px;
+      height: 350px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform-style: preserve-3d;
+      -webkit-transform-style: preserve-3d;
+    }
+
+    /* Floating & Interactive Motion Wrapper (Driven by Smooth JS Physics) */
+    .book-float-wrapper {
+      position: relative;
+      width: 220px;
+      height: 330px;
+      transform-style: preserve-3d;
+      -webkit-transform-style: preserve-3d;
+      will-change: transform;
+      transform: translate3d(0, 0, 0) rotateY(-24deg) rotateX(7deg) rotateZ(-1deg);
+    }
+
+    /* 3D Book Assembly */
+    .book-3d {
+      position: relative;
+      width: 220px;
+      height: 330px;
+      transform-style: preserve-3d;
+      -webkit-transform-style: preserve-3d;
+      will-change: transform;
+    }
+
+    /* 
+     * Anti-Aliasing Edge Shield:
+     * - border-radius triggers Skia coverage-based anti-aliasing
+     * - outline with 1px alpha-blend forces subpixel edge feathering
+     * - backface-visibility: hidden eliminates backside bleed
+     */
+    .book-face-front,
+    .book-face-spine,
+    .book-face-pages-right,
+    .book-face-pages-top,
+    .book-face-back {
+      outline: 1px solid rgba(255, 255, 255, 0.015);
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      image-rendering: -webkit-optimize-contrast;
+      transform-style: preserve-3d;
+    }
+
+    /* Front Cover */
+    .book-face-front {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 220px;
+      height: 330px;
+      background-color: var(--book-bg);
+      border-radius: 2px 4px 4px 2px;
+      transform: translateZ(17px);
+      box-shadow: 
+        0 0 1px 0.5px rgba(0, 0, 0, 0.4),
+        inset 16px 0 10px -10px rgba(0, 0, 0, 0.7),
+        inset 0 0 1px rgba(255, 255, 255, 0.12);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 22px 20px 24px 28px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Hardcover Spine Hinge Groove */
+    .book-face-front::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 12px;
+      width: 3px;
+      height: 100%;
+      background: linear-gradient(to right, rgba(0, 0, 0, 0.6), rgba(255, 255, 255, 0.07));
+      box-shadow: 1px 0 2px rgba(0, 0, 0, 0.8);
+      pointer-events: none;
+    }
+
+    /* Fine Crosshatch Pattern Background */
+    .book-crosshatch-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.035) 0, rgba(255, 255, 255, 0.035) 1px, transparent 0, transparent 9px),
+        repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.035) 0, rgba(255, 255, 255, 0.035) 1px, transparent 0, transparent 9px);
+      pointer-events: none;
+    }
+
+    /* Front Cover Content Elements */
+    .cover-header {
+      position: relative;
+      z-index: 2;
+    }
+
+    .cover-series-tag {
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #71717a;
+      margin-bottom: 2px;
+      font-weight: 400;
+    }
+
+    /* Central Subject/Author Representative Image (Monochrome Portrait/Artwork) */
+    .cover-image-area {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 6px 0;
+      width: 100%;
+      height: 152px;
+      overflow: hidden;
+      border-radius: 6px;
+      background: #09090b;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), inset 0 0 1px rgba(255, 255, 255, 0.15);
+    }
+
+    .cover-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 20%;
+      filter: grayscale(100%) contrast(115%) brightness(95%);
+      opacity: 0.92;
+      transition: opacity 0.35s ease, transform 0.35s ease;
+      will-change: opacity, transform;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .cover-image-area::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.7);
+      pointer-events: none;
+    }
+
+    .cover-footer {
+      position: relative;
+      z-index: 2;
+    }
+
+    .cover-author {
+      font-size: 0.92rem;
+      color: #a1a1aa;
+      margin-bottom: 4px;
+      letter-spacing: 0.05em;
+      font-weight: 400;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    .cover-main-title {
+      font-size: 1.35rem;
+      line-height: 1.25;
+      font-weight: 700;
+      color: #ffffff;
+      margin: 0;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      word-break: break-word;
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    /* Book Spine (Left Face) - Enhanced Cylindrical 3D Curvature */
+    .book-face-spine {
+      position: absolute;
+      top: 0;
+      left: calc(50% - 17px);
+      width: 34px;
+      height: 330px;
+      background: linear-gradient(
+        to right,
+        #070709 0%,
+        #151518 12%,
+        #35353c 30%,
+        #484852 42%,
+        #2a2a30 65%,
+        #141417 86%,
+        #060608 100%
+      );
+      transform: rotateY(-90deg) translateZ(110px);
+      border-radius: 4px 2px 2px 4px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 4px 16px;
+      box-shadow: 
+        0 0 1px 0.5px rgba(0, 0, 0, 0.6),
+        inset 2.5px 0 3px rgba(255, 255, 255, 0.15),
+        inset -3px 0 6px rgba(0, 0, 0, 0.85),
+        inset 0 4px 6px -2px rgba(255, 255, 255, 0.12),
+        inset 0 -4px 6px -2px rgba(0, 0, 0, 0.7);
+    }
+
+    /* Subtle Classic Raised Bands (竹节/横棱) on Spine for tactile depth */
+    .book-face-spine::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 54px,
+        rgba(255, 255, 255, 0.09) 55px,
+        rgba(0, 0, 0, 0.45) 56px,
+        transparent 57px
+      );
+      pointer-events: none;
+      border-radius: inherit;
+    }
+
+    .spine-text-container {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      max-height: 230px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+    }
+
+    .spine-title {
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      color: #d4d4d8;
+      white-space: nowrap;
+      transition: opacity 0.35s ease;
+    }
+
+    .spine-logo {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 1px solid #71717a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #a1a1aa;
+    }
+
+    /* Right Face (Paper Thickness) - Authentic Vertical Page Stripes */
+    .book-face-pages-right {
+      position: absolute;
+      top: 3px;
+      left: calc(50% - 16px);
+      width: 32px;
+      height: 324px;
+      border-radius: 1px;
+      background: 
+        linear-gradient(to right, rgba(0, 0, 0, 0.45) 0%, transparent 16%, transparent 84%, rgba(0, 0, 0, 0.3) 100%),
+        repeating-linear-gradient(to right, #f4f4f5 0px, #f4f4f5 1px, #d4d4d8 1px, #a1a1aa 2px, #f4f4f5 2.5px);
+      transform: rotateY(90deg) translateZ(107px);
+      box-shadow: 0 0 1px 0.5px rgba(0, 0, 0, 0.35), inset 0 0 8px rgba(0, 0, 0, 0.45);
+    }
+
+    /* Top Face (Top Paper Edge) */
+    .book-face-pages-top {
+      position: absolute;
+      left: 14px;
+      top: calc(50% - 16px);
+      width: 202px;
+      height: 32px;
+      border-radius: 1px;
+      background: repeating-linear-gradient(to right, #d4d4d8 0px, #d4d4d8 1px, #a1a1aa 1px, #a1a1aa 3px);
+      transform: rotateX(90deg) translateZ(163px);
+      box-shadow: 0 0 1px 0.5px rgba(0, 0, 0, 0.35), inset 0 0 6px rgba(0, 0, 0, 0.35);
+    }
+
+    /* Back Cover */
+    .book-face-back {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 220px;
+      height: 330px;
+      background-color: var(--book-bg);
+      transform: translateZ(-17px) rotateY(180deg);
+      border-radius: 4px 2px 2px 4px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: 0 0 1px 0.5px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Floating Floor Shadow */
+    .book-floor-shadow {
+      position: absolute;
+      bottom: -28px;
+      width: 220px;
+      height: 36px;
+      background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.25) 55%, transparent 75%);
+      transform: rotateX(90deg) translateZ(-40px);
+      filter: blur(8px);
+      pointer-events: none;
+      will-change: transform, opacity;
+    }
+
+    /* Visual Synchronized Transition State */
+    .book-transitioning .cover-main-title,
+    .book-transitioning .cover-author,
+    .book-transitioning .cover-image,
+    .book-transitioning .spine-title {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+
+    /* Visually Hidden Helper (Accessibility standard) */
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* Footer Related Links */
+    .app-footer {
+      margin-top: clamp(32px, 6vh, 52px);
+      text-align: center;
+      z-index: 2;
+    }
+
+    .footer-links {
+      margin: 0;
+      font-size: clamp(0.82rem, 1.8vw, 0.9rem);
+      color: var(--fg-subtle);
+      line-height: 1.6;
+      letter-spacing: 0.02em;
+    }
+
+    .footer-link {
+      color: var(--fg-muted);
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 3px;
+      text-decoration-color: rgba(255, 255, 255, 0.25);
+      transition: color 0.15s ease, text-decoration-color 0.15s ease;
+    }
+
+    .footer-link:hover {
+      color: var(--fg);
+      text-decoration-color: var(--fg);
+    }
+
+    [data-theme="light"] .footer-link {
+      text-decoration-color: rgba(0, 0, 0, 0.22);
+    }
+
+    [data-theme="light"] .footer-link:hover {
+      text-decoration-color: var(--fg);
+    }
+
+    /* Responsive scaling for mobile screens */
+    @media (max-width: 640px) {
+      .theme-toggle-btn {
+        top: 14px;
+        right: 14px;
+        width: 32px;
+        height: 32px;
+      }
+      .theme-toggle-btn .theme-icon {
+        width: 18px;
+        height: 18px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .app-container {
+        padding-top: 42px;
+      }
+      .theme-toggle-btn {
+        top: 12px;
+        right: 12px;
+        width: 28px;
+        height: 28px;
+      }
+      .theme-toggle-btn .theme-icon {
+        width: 16px;
+        height: 16px;
+      }
+      .mirror-dropdown {
+        min-width: 236px;
+      }
+      .mirror-link {
+        padding: 6px 8px;
+        font-size: 0.8rem;
+      }
+      .title-hint-tooltip {
+        font-size: 0.74rem;
+        padding: 4px 8px 4px 10px;
+        bottom: calc(100% + 8px);
+      }
+      .brand-title {
+        font-size: 2.3rem;
+      }
+      .search-form {
+        padding: 4px 4px 4px 12px;
+      }
+      .search-field-container {
+        height: 40px;
+      }
+      .search-input, .ticker-item {
+        font-size: 0.95rem;
+      }
+      .search-btn {
+        width: 34px;
+        height: 34px;
+      }
+      .btn-icon {
+        width: 15px;
+        height: 15px;
+      }
+      .book-stage {
+        transform: scale(0.82);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      canvas#stars {
+        display: none;
+      }
+      .ticker-item, .cover-main-title, .cover-author, .spine-title {
+        transition: none !important;
       }
     }
   </style>
 </head>
 <body>
+  <!-- Top-Right Theme Toggle Button (Sun Icon matches user screenshot) -->
+  <button id="theme-toggle-btn" class="theme-toggle-btn" type="button" aria-label="切换黑白主题" title="切换黑白主题">
+    <!-- Sun Icon (matches user screenshot) -->
+    <svg class="theme-icon icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="4.2"></circle>
+      <line x1="12" y1="1.8" x2="12" y2="4.5"></line>
+      <line x1="12" y1="19.5" x2="12" y2="22.2"></line>
+      <line x1="1.8" y1="12" x2="4.5" y2="12"></line>
+      <line x1="19.5" y1="12" x2="22.2" y2="12"></line>
+      <line x1="4.8" y1="4.8" x2="6.7" y2="6.7"></line>
+      <line x1="17.3" y1="17.3" x2="19.2" y2="19.2"></line>
+      <line x1="4.8" y1="19.2" x2="6.7" y2="17.3"></line>
+      <line x1="17.3" y1="6.7" x2="19.2" y2="4.8"></line>
+    </svg>
+    <!-- Moon Icon -->
+    <svg class="theme-icon icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+    </svg>
+  </button>
+
+  <!-- Ambient Canvas Background -->
   <canvas id="stars" aria-hidden="true"></canvas>
 
-  <main class="content">
-    <h1>不想看书</h1>
+  <main class="app-container">
+    <!-- Header Section with Mirror Sites Dropdown attached to Main Title -->
+    <header class="header">
+      <div class="brand-title-wrapper" id="brand-title-wrapper">
+        <!-- First-time User Hint Tooltip -->
+        <div class="title-hint-tooltip" id="title-hint-tooltip" role="tooltip" aria-hidden="true">
+          <span class="hint-text">点击标题「不想看书」可弹出镜像列表</span>
+          <button type="button" class="hint-close-btn" id="hint-close-btn" aria-label="关闭提示">✕</button>
+        </div>
 
-    <div class="slogan" role="group" aria-label="网站标语（中英文）">
-      <div>Your gateway to knowledge and culture<br>Accessible for everyone</div>
-      <div>您通往知识和文化的门户<br>每个人都可以使用</div>
-    </div>
+        <h1
+          class="brand-title"
+          id="brand-title"
+          tabindex="0"
+          role="button"
+          aria-haspopup="true"
+          aria-expanded="false"
+          title="点击或悬停查看可用镜像站点"
+        >不想看书</h1>
 
-    <button
-      class="btn"
-      type="button"
-      aria-label="打开 Z-Library 中文站点（新窗口）"
-      title="https://zh.101sat.ru"
-      onclick="window.open('https://zh.101sat.ru', '_blank', 'noopener,noreferrer')"
-    >
-      Z-Library
-    </button>
+        <!-- Dropdown Mirror Websites Panel -->
+        <div class="mirror-dropdown" id="mirror-dropdown" role="menu" aria-label="可用镜像网站列表">
+          <div class="mirror-dropdown-header">
+            <span class="mirror-header-title">镜像站点</span>
+            <span class="mirror-header-tip">点击访问</span>
+          </div>
+          <ul class="mirror-list">
+            <li role="none">
+              <a
+                href="https://zh.101isfj.ru"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mirror-link"
+                role="menuitem"
+              >
+                <span class="mirror-domain">https://zh.101isfj.ru</span>
+                <span class="mirror-rec-text">没墙</span>
+              </a>
+            </li>
+            <li role="none">
+              <a
+                href="https://1lib.sk"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mirror-link"
+                role="menuitem"
+              >
+                <span class="mirror-domain">https://1lib.sk</span>
+              </a>
+            </li>
+            <li role="none">
+              <a
+                href="https://zlib.bz"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mirror-link"
+                role="menuitem"
+              >
+                <span class="mirror-domain">https://zlib.bz</span>
+              </a>
+            </li>
+            <li role="none">
+              <a
+                href="https://z-lib.by"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mirror-link"
+                role="menuitem"
+              >
+                <span class="mirror-domain">https://z-lib.by</span>
+              </a>
+            </li>
+            <li role="none">
+              <a
+                href="https://z-lib.gd"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mirror-link"
+                role="menuitem"
+              >
+                <span class="mirror-domain">https://z-lib.gd</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <p class="brand-subtitle" aria-label="Your gateway to knowledge and culture. Accessible for everyone.">
+        <span class="brand-subtitle-line">Your gateway to knowledge and culture</span>
+        <span class="brand-subtitle-line">Accessible for everyone</span>
+    </header>
+
+    <!-- Search Section -->
+    <section class="search-section" aria-label="书籍检索">
+      <form class="search-form" id="search-form" role="search" target="_blank" rel="noopener noreferrer" novalidate>
+        <!-- Magnifying Glass Indicator Icon -->
+        <div class="search-icon-wrapper" aria-hidden="true">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="7.5"></circle>
+            <line x1="21" y1="21" x2="16.5" y2="16.5"></line>
+          </svg>
+        </div>
+
+        <!-- Input Field Container -->
+        <div class="search-field-container" id="search-field-container">
+          <label for="search-input" class="visually-hidden">输入要搜索的书籍名称</label>
+          <input
+            type="search"
+            id="search-input"
+            class="search-input"
+            placeholder=" "
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+          />
+
+          <!-- Upward Scrolling Prompt Ticker -->
+          <div class="placeholder-ticker" id="placeholder-ticker" aria-hidden="true">
+            <div class="ticker-stage" id="ticker-stage">
+              <span class="ticker-item state-center" id="ticker-item">物种起源</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Minimalist Action Submit Button (Icon Only) -->
+        <button type="submit" class="search-btn" id="search-btn" aria-label="在新标签页搜索">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </button>
+      </form>
+    </section>
+
+    <!-- Synchronized 3D Floating Book Cover Section (Interactive Hover & Drag) -->
+    <section class="book-display-section" id="book-display-section" title="可拖拽互动，点击在新标签页搜索本书" aria-label="当前推荐书籍立体封面展示">
+      <div class="book-stage">
+        <div class="book-float-wrapper" id="book-float-wrapper">
+          <div class="book-3d" id="book-3d">
+            <!-- Front Cover Face -->
+            <div class="book-face-front" id="book-face-front">
+              <div class="book-crosshatch-bg" aria-hidden="true"></div>
+              
+              <div class="cover-header">
+                <div class="cover-series-tag">Z-LIBRARY EDITION</div>
+              </div>
+
+              <!-- Central Subject/Author Representative Image -->
+              <div class="cover-image-area" aria-hidden="true">
+                <img 
+                  id="cover-image" 
+                  class="cover-image" 
+                  src="assets/images/book_0.jpg" 
+                  alt="" 
+                  loading="eager" 
+                  decoding="async" 
+                />
+              </div>
+
+              <div class="cover-footer">
+                <div class="cover-author" id="cover-author">达尔文</div>
+                <h2 class="cover-main-title" id="cover-main-title">物种起源</h2>
+              </div>
+            </div>
+
+            <!-- Spine Face -->
+            <div class="book-face-spine">
+              <div class="spine-text-container">
+                <span class="spine-title" id="spine-title">物种起源</span>
+              </div>
+              <div class="spine-logo">Z</div>
+            </div>
+
+            <!-- Page Block (Right & Top) -->
+            <div class="book-face-pages-right" aria-hidden="true"></div>
+            <div class="book-face-pages-top" aria-hidden="true"></div>
+
+            <!-- Back Cover Face -->
+            <div class="book-face-back" aria-hidden="true"></div>
+          </div>
+        </div>
+
+        <!-- Floor Perspective Shadow -->
+        <div class="book-floor-shadow" id="book-floor-shadow" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <!-- Footer Related Links -->
+    <footer class="app-footer" aria-label="相关站点链接">
+      <p class="footer-links">
+        不想看片：<a href="https://bxkp.org" target="_blank" rel="noopener noreferrer" class="footer-link">bxkp.org</a>、不想翻墙：<a href="https://fan.jiakuan.link" target="_blank" rel="noopener noreferrer" class="footer-link">fan.jiakuan.link</a>
+      </p>
+    </footer>
   </main>
 
   <script>
     (function () {
-      const prefersReducedMotion = window.matchMedia &&
-        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      'use strict';
 
-      const canvas = document.getElementById('stars');
-      if (!canvas || prefersReducedMotion) return;
+      // 40 Classic Books with Verified Authors
+      const BOOK_LIST = [
+        { title: '物种起源', author: '达尔文' },
+        { title: '国富论', author: '亚当·斯密' },
+        { title: '相对论：狭义与广义相对论浅说', author: '阿尔伯特·爱因斯坦' },
+        { title: '资本论', author: '卡尔·马克思' },
+        { title: '自然哲学的数学原理', author: '艾萨克·牛顿' },
+        { title: '时间简史', author: '史蒂芬·霍金' },
+        { title: '红楼梦', author: '曹雪芹' },
+        { title: '理想国', author: '柏拉图' },
+        { title: '梦的解析', author: '西格蒙德·弗洛伊德' },
+        { title: '自私的基因', author: '理查德·道金斯' },
+        { title: '战争与和平', author: '列夫·托尔斯泰' },
+        { title: '君主论', author: '尼可罗·马基雅维利' },
+        { title: '论法的精神', author: '孟德斯鸠' },
+        { title: '几何原本', author: '欧几里得' },
+        { title: '喧哗与骚动', author: '威廉·福克纳' },
+        { title: '社会契约论', author: '让-雅克·卢梭' },
+        { title: '堂吉诃德', author: '米格尔·德·塞万提斯' },
+        { title: '就业、利息和货币通论', author: '约翰·梅纳德·凯恩斯' },
+        { title: '人类简史：从动物到上帝', author: '尤瓦尔·赫拉利' },
+        { title: '百年孤独', author: '加西亚·马尔克斯' },
+        { title: 'Silent Spring', author: 'Rachel Carson' },
+        { title: '1984', author: 'George Orwell' },
+        { title: 'The Structure of Scientific Revolutions', author: 'Thomas S. Kuhn' },
+        { title: 'To Kill a Mockingbird', author: 'Harper Lee' },
+        { title: 'The Double Helix', author: 'James D. Watson' },
+        { title: 'Cosmos', author: 'Carl Sagan' },
+        { title: 'The Wealth of Nations', author: 'Adam Smith' },
+        { title: 'Guns, Germs, and Steel', author: 'Jared Diamond' },
+        { title: 'The Catcher in the Rye', author: 'J.D. Salinger' },
+        { title: 'Brave New World', author: 'Aldous Huxley' },
+        { title: '思考，快与慢', author: '丹尼尔·卡尼曼' },
+        { title: '二十一世纪资本论', author: '托马斯·皮凯蒂' },
+        { title: '众病之王：癌症传', author: '悉达多·穆克吉' },
+        { title: '第六次大灭绝', author: '伊丽莎白·科尔伯特' },
+        { title: '事实', author: '汉斯·罗斯林' },
+        { title: '你当像鸟飞往你的山', author: '塔拉·韦斯特弗' },
+        { title: '大教堂与集市', author: '埃里克·雷蒙德' },
+        { title: '芯片战争', author: '克里斯·米勒' },
+        { title: '规模', author: '杰弗里·韦斯特' },
+        { title: '生命3.0', author: '迈克斯·泰格马克' }
+      ];
 
-      const ctx = canvas.getContext('2d', { alpha: true });
-      let width = window.innerWidth;
-      let height = window.innerHeight;
-      let dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2)); // cap DPR for perf
+      // Search engine configurations with weighted probabilities:
+      // https://zh.101isfj.ru: 70%
+      // Others: 7.5% each (total 30%)
+      const SEARCH_ENGINES = [
+        { domain: 'https://zh.101isfj.ru', weight: 0.70 },
+        { domain: 'https://z-lib.by', weight: 0.075 },
+        { domain: 'https://1lib.sk', weight: 0.075 },
+        { domain: 'https://z-lib.gd', weight: 0.075 },
+        { domain: 'https://zlib.bz', weight: 0.075 }
+      ];
 
-      // Size canvas for DPR to keep stars crisp across clients
-      function sizeCanvas() {
-        width = window.innerWidth;
-        height = window.innerHeight;
-        dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
-        canvas.width = Math.floor(width * dpr);
-        canvas.height = Math.floor(height * dpr);
-        canvas.style.width = width + 'px';
-        canvas.style.height = height + 'px';
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      }
-      sizeCanvas();
-
-      // Stars: scale count by area but cap for low-end devices
-      const baseDensity = 0.08; // stars per 1000px^2
-      function computeStarCount() {
-        const areaK = (width * height) / 1000;
-        const target = Math.min(450, Math.max(180, Math.floor(areaK * baseDensity)));
-        return target;
-      }
-
-      let stars = [];
-      function initStars() {
-        stars.length = 0;
-        const numStars = computeStarCount();
-        for (let i = 0; i < numStars; i++) {
-          const angle = Math.random() * Math.PI * 2;
-          const speed = 0.4 + Math.random() * 1.8;
-          stars.push({
-            x: width / 2,
-            y: height / 2,
-            radius: Math.random() * 1.3 + 0.5,
-            alpha: 0.5 + Math.random() * 0.5,
-            angle,
-            speed,
-            distance: 0
-          });
-        }
-      }
-      initStars();
-
-      function drawStars() {
-        ctx.clearRect(0, 0, width, height);
-        for (let i = 0; i < stars.length; i++) {
-          const star = stars[i];
-          ctx.beginPath();
-          ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(255,255,255,' + star.alpha + ')';
-          ctx.fill();
-        }
-      }
-
-      function scatterEffect() {
-        for (let i = 0; i < stars.length; i++) {
-          const star = stars[i];
-          star.distance += star.speed;
-          star.x = width / 2 + Math.cos(star.angle) * star.distance;
-          star.y = height / 2 + Math.sin(star.angle) * star.distance;
-
-          // Reset if out of bounds
-          if (star.x < -10 || star.x > width + 10 || star.y < -10 || star.y > height + 10) {
-            star.x = width / 2;
-            star.y = height / 2;
-            star.distance = 0;
-            star.angle = Math.random() * Math.PI * 2;
-            star.speed = 0.4 + Math.random() * 1.8;
+      /**
+       * Pick a search engine based on the specified probability distribution
+       */
+      function selectSearchEngine() {
+        const rand = Math.random();
+        let cumulative = 0;
+        for (const engine of SEARCH_ENGINES) {
+          cumulative += engine.weight;
+          if (rand < cumulative) {
+            return engine.domain;
           }
         }
+        return SEARCH_ENGINES[0].domain;
       }
 
-      let rafId = null;
-      function loop() {
-        drawStars();
-        scatterEffect();
-        rafId = window.requestAnimationFrame(loop);
+      /**
+       * Convert target domain and query to standard Z-Library search route:
+       * Format: https://{domain}/s/{encodeURIComponent(query)}
+       */
+      function buildSearchUrl(baseDomain, query) {
+        const normalizedDomain = baseDomain.replace(/\/+$/, '');
+        return `${normalizedDomain}/s/${encodeURIComponent(query)}`;
       }
-      loop();
 
-      // Debounced resize for comfort across clients
-      let resizeTimer = null;
-      window.addEventListener('resize', function () {
-        if (rafId) window.cancelAnimationFrame(rafId);
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(function () {
-          sizeCanvas();
-          initStars();
-          loop();
-        }, 120);
-      }, { passive: true });
+      // DOM Elements
+      const searchForm = document.getElementById('search-form');
+      const searchInput = document.getElementById('search-input');
+      const searchContainer = document.getElementById('search-field-container');
+      const tickerStage = document.getElementById('ticker-stage');
+      const bookDisplaySection = document.getElementById('book-display-section');
+      const coverMainTitle = document.getElementById('cover-main-title');
+      const coverAuthor = document.getElementById('cover-author');
+      const coverImage = document.getElementById('cover-image');
+      const spineTitle = document.getElementById('spine-title');
 
-      // Cleanup on visibility change
-      document.addEventListener('visibilitychange', function () {
-        if (document.hidden && rafId) {
-          window.cancelAnimationFrame(rafId);
-          rafId = null;
-        } else if (!document.hidden && !rafId) {
-          loop();
+      let currentBookIndex = 0;
+      let tickerTimer = null;
+      let isTransitioning = false;
+      const CYCLE_INTERVAL = 3200; // 3.2 seconds per book
+
+      /**
+       * Cycle Prompt & 3D Book Cover Synchronously:
+       * - Old title exits upward: translateY(-26px), opacity: 0
+       * - New title enters from bottom: starts at translateY(26px), moves to translateY(0)
+       * - 3D Book Cover Title & Author update in sync
+       */
+      function transitionToNextBook() {
+        if (isTransitioning) return;
+        isTransitioning = true;
+
+        const nextIndex = (currentBookIndex + 1) % BOOK_LIST.length;
+        const nextBook = BOOK_LIST[nextIndex];
+
+        // 1. Prepare search box ticker transition
+        const currentItem = document.getElementById('ticker-item');
+        const newItem = document.createElement('span');
+        newItem.className = 'ticker-item state-enter-down';
+        newItem.textContent = nextBook.title;
+        tickerStage.appendChild(newItem);
+
+        // 2. Synchronize 3D book cover transition
+        bookDisplaySection.classList.add('book-transitioning');
+
+        // Force browser layout reflow
+        void newItem.offsetWidth;
+
+        // Trigger simultaneous animations
+        if (currentItem) {
+          currentItem.className = 'ticker-item state-exit-up';
+        }
+        newItem.className = 'ticker-item state-center';
+
+        // Update 3D Book title, author, and representative image midway
+        setTimeout(() => {
+          coverMainTitle.textContent = nextBook.title;
+          coverAuthor.textContent = nextBook.author;
+          spineTitle.textContent = nextBook.title;
+          if (coverImage) {
+            coverImage.src = `assets/images/book_${nextIndex}.jpg`;
+          }
+          bookDisplaySection.classList.remove('book-transitioning');
+        }, 180);
+
+        // Cleanup old element
+        setTimeout(() => {
+          if (currentItem && currentItem.parentNode === tickerStage) {
+            tickerStage.removeChild(currentItem);
+          }
+          newItem.id = 'ticker-item';
+          currentBookIndex = nextIndex;
+          isTransitioning = false;
+        }, 460);
+      }
+
+      function startTicker() {
+        if (tickerTimer) clearInterval(tickerTimer);
+        tickerTimer = setInterval(transitionToNextBook, CYCLE_INTERVAL);
+      }
+
+      function stopTicker() {
+        if (tickerTimer) {
+          clearInterval(tickerTimer);
+          tickerTimer = null;
+        }
+      }
+
+      // Input change listener: hides ticker when user enters text
+      function handleInputChange() {
+        if (searchInput.value.trim().length > 0) {
+          searchContainer.classList.add('has-value');
+        } else {
+          searchContainer.classList.remove('has-value');
+        }
+      }
+
+      searchInput.addEventListener('input', handleInputChange);
+      searchInput.addEventListener('change', handleInputChange);
+
+      // Manage ticker lifecycle on page visibility
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          stopTicker();
+        } else {
+          startTicker();
         }
       });
+
+      startTicker();
+
+      /**
+       * Reliable New Tab Navigation:
+       * Creates a temporary <a> tag with target="_blank" and rel="noopener noreferrer"
+       * to ensure guaranteed new-tab opening across all browsers without triggering popup blockers.
+       */
+      function performSearch(forcedQuery) {
+        const rawQuery = (typeof forcedQuery === 'string' && forcedQuery.trim()) 
+          ? forcedQuery.trim() 
+          : searchInput.value.trim();
+
+        // If query is empty, fallback to currently prompted book title
+        const currentBook = BOOK_LIST[currentBookIndex];
+        const finalQuery = rawQuery || (currentBook ? currentBook.title : '');
+
+        if (!finalQuery) return;
+
+        const targetEngine = selectSearchEngine();
+        const searchUrl = buildSearchUrl(targetEngine, finalQuery);
+
+        // Force open in new tab via native link trigger
+        const link = document.createElement('a');
+        link.href = searchUrl;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      /* 
+       * ========================================================
+       * 3D Book Interactive Physics & Motion Trajectory Engine
+       * Handles smooth breathing float + subtle Hover & Drag tilt
+       * ========================================================
+       */
+      (function initBookMotionEngine() {
+        const bookFloatWrapper = document.getElementById('book-float-wrapper');
+        const bookFloorShadow = document.getElementById('book-floor-shadow');
+        if (!bookFloatWrapper || !bookFloorShadow) return;
+
+        const prefersReducedMotion = window.matchMedia &&
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        // Hover offset targets
+        let hoverYaw = 0;
+        let hoverPitch = 0;
+        let hoverTransX = 0;
+        let hoverTransY = 0;
+
+        // Drag offset targets
+        let dragYaw = 0;
+        let dragPitch = 0;
+        let dragTransX = 0;
+        let dragTransY = 0;
+
+        // Filtered smoothed values (Lerp physics)
+        let curInteractiveYaw = 0;
+        let curInteractivePitch = 0;
+        let curInteractiveTransX = 0;
+        let curInteractiveTransY = 0;
+
+        let isPointerDown = false;
+        let startPointerX = 0;
+        let startPointerY = 0;
+        let totalDragDistance = 0;
+
+        // Unified Pointer Events (Mouse + Touch + Pen)
+        bookDisplaySection.addEventListener('pointerdown', (e) => {
+          isPointerDown = true;
+          startPointerX = e.clientX;
+          startPointerY = e.clientY;
+          totalDragDistance = 0;
+          bookDisplaySection.classList.add('is-dragging');
+          try {
+            bookDisplaySection.setPointerCapture(e.pointerId);
+          } catch (_) {}
+        });
+
+        bookDisplaySection.addEventListener('pointermove', (e) => {
+          const rect = bookDisplaySection.getBoundingClientRect();
+          const centerX = rect.left + rect.width / 2;
+          const centerY = rect.top + rect.height / 2;
+
+          if (isPointerDown) {
+            const dx = e.clientX - startPointerX;
+            const dy = e.clientY - startPointerY;
+            totalDragDistance = Math.hypot(dx, dy);
+
+            // Drag offsets within small bounded angles
+            dragYaw = Math.max(-18, Math.min(18, dx * 0.16));
+            dragPitch = Math.max(-12, Math.min(12, -dy * 0.14));
+            dragTransX = Math.max(-22, Math.min(22, dx * 0.2));
+            dragTransY = Math.max(-18, Math.min(18, dy * 0.18));
+          } else {
+            // Hover subtle tilt
+            const normX = Math.max(-1, Math.min(1, (e.clientX - centerX) / (rect.width * 0.55)));
+            const normY = Math.max(-1, Math.min(1, (e.clientY - centerY) / (rect.height * 0.55)));
+            hoverYaw = normX * 9;
+            hoverPitch = -normY * 7;
+            hoverTransX = normX * 12;
+            hoverTransY = normY * 9;
+          }
+        });
+
+        function handlePointerUp(e) {
+          if (!isPointerDown) return;
+          isPointerDown = false;
+          bookDisplaySection.classList.remove('is-dragging');
+          try {
+            bookDisplaySection.releasePointerCapture(e.pointerId);
+          } catch (_) {}
+
+          dragYaw = 0;
+          dragPitch = 0;
+          dragTransX = 0;
+          dragTransY = 0;
+
+          // If dragged less than 6px, treat as pure click -> trigger search
+          if (totalDragDistance < 6) {
+            performSearch(BOOK_LIST[currentBookIndex].title);
+          }
+        }
+
+        bookDisplaySection.addEventListener('pointerup', handlePointerUp);
+        bookDisplaySection.addEventListener('pointercancel', handlePointerUp);
+        bookDisplaySection.addEventListener('pointerleave', () => {
+          if (!isPointerDown) {
+            hoverYaw = 0;
+            hoverPitch = 0;
+            hoverTransX = 0;
+            hoverTransY = 0;
+          }
+        });
+
+        let rafMotionId = null;
+
+        function updateMotion() {
+          const now = performance.now();
+
+          // 1. Base Floating Motion Trajectory (exact reproduction of original 5.5s cycle)
+          let baseY = 0;
+          let baseRotY = -24;
+          let baseRotX = 7;
+          let baseRotZ = -1;
+
+          if (!prefersReducedMotion) {
+            const cycleProgress = (now % 5500) / 5500;
+            const phase = (cycleProgress - 0.25) * Math.PI * 2;
+            const sinPhase = Math.sin(phase);
+
+            baseY = -8 + (-8) * sinPhase;            // 0px -> -16px -> 0px
+            baseRotY = -25.5 + (-1.5) * sinPhase;   // -24deg -> -27deg -> -24deg
+            baseRotX = 8.0 + (1.0) * sinPhase;      // 7deg -> 9deg -> 7deg
+            baseRotZ = -0.5 + (0.5) * sinPhase;     // -1deg -> 0deg -> -1deg
+          }
+
+          // 2. Smooth Lerp Interpolation for Interactive Offsets
+          const targetYaw = isPointerDown ? dragYaw : hoverYaw;
+          const targetPitch = isPointerDown ? dragPitch : hoverPitch;
+          const targetTransX = isPointerDown ? dragTransX : hoverTransX;
+          const targetTransY = isPointerDown ? dragTransY : hoverTransY;
+
+          const lerpFactor = isPointerDown ? 0.18 : 0.08;
+          curInteractiveYaw += (targetYaw - curInteractiveYaw) * lerpFactor;
+          curInteractivePitch += (targetPitch - curInteractivePitch) * lerpFactor;
+          curInteractiveTransX += (targetTransX - curInteractiveTransX) * lerpFactor;
+          curInteractiveTransY += (targetTransY - curInteractiveTransY) * lerpFactor;
+
+          // 3. Combined Transform
+          const finalRotY = baseRotY + curInteractiveYaw;
+          const finalRotX = baseRotX + curInteractivePitch;
+          const finalRotZ = baseRotZ;
+          const finalTransX = curInteractiveTransX;
+          const finalTransY = baseY + curInteractiveTransY;
+
+          bookFloatWrapper.style.transform = `translate3d(${finalTransX.toFixed(2)}px, ${finalTransY.toFixed(2)}px, 0px) rotateY(${finalRotY.toFixed(2)}deg) rotateX(${finalRotX.toFixed(2)}deg) rotateZ(${finalRotZ.toFixed(2)}deg)`;
+
+          // 4. Floor Shadow Dynamics
+          const shadowNormalized = Math.max(0, Math.min(1, finalTransY / -16));
+          const shadowScale = 1 - shadowNormalized * 0.18;
+          const shadowOpacity = 0.65 - shadowNormalized * 0.33;
+
+          bookFloorShadow.style.transform = `rotateX(90deg) translateZ(-40px) translateX(${(finalTransX * 0.65).toFixed(2)}px) scale(${shadowScale.toFixed(3)})`;
+          bookFloorShadow.style.opacity = shadowOpacity.toFixed(3);
+
+          rafMotionId = requestAnimationFrame(updateMotion);
+        }
+
+        updateMotion();
+
+        document.addEventListener('visibilitychange', () => {
+          if (document.hidden && rafMotionId) {
+            cancelAnimationFrame(rafMotionId);
+            rafMotionId = null;
+          } else if (!document.hidden && !rafMotionId) {
+            updateMotion();
+          }
+        });
+      })();
+
+      // IME composition safety (per modern-web-guidance)
+      let isComposing = false;
+
+      searchInput.addEventListener('compositionstart', () => {
+        isComposing = true;
+      });
+
+      searchInput.addEventListener('compositionend', () => {
+        isComposing = false;
+      });
+
+      searchInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          if (event.isComposing || isComposing || event.keyCode === 229) {
+            return;
+          }
+          event.preventDefault();
+          performSearch();
+        }
+      });
+
+      searchForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        if (isComposing) return;
+        performSearch();
+      });
+
+      // Canvas Background Animation (Monochrome Cosmic Dust)
+      (function initBackground() {
+        const prefersReducedMotion = window.matchMedia &&
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        const canvas = document.getElementById('stars');
+        if (!canvas || prefersReducedMotion) return;
+
+        const ctx = canvas.getContext('2d', { alpha: true });
+        let width = window.innerWidth;
+        let height = window.innerHeight;
+        let dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
+
+        function resize() {
+          width = window.innerWidth;
+          height = window.innerHeight;
+          dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
+          canvas.width = Math.floor(width * dpr);
+          canvas.height = Math.floor(height * dpr);
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+        resize();
+
+        const numStars = Math.min(200, Math.max(70, Math.floor((width * height) / 13000)));
+        const stars = [];
+
+        for (let i = 0; i < numStars; i++) {
+          stars.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            radius: Math.random() * 1.1 + 0.4,
+            alpha: Math.random() * 0.45 + 0.15,
+            deltaAlpha: (Math.random() * 0.008 + 0.002) * (Math.random() > 0.5 ? 1 : -1),
+            vy: (Math.random() * 0.12 + 0.04) * -1
+          });
+        }
+
+        let rafId = null;
+
+        function animate() {
+          ctx.clearRect(0, 0, width, height);
+          const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+
+          for (let i = 0; i < stars.length; i++) {
+            const star = stars[i];
+            star.alpha += star.deltaAlpha;
+            if (star.alpha > 0.65 || star.alpha < 0.12) {
+              star.deltaAlpha = -star.deltaAlpha;
+            }
+
+            star.y += star.vy;
+            if (star.y < 0) {
+              star.y = height;
+              star.x = Math.random() * width;
+            }
+
+            ctx.beginPath();
+            ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+            if (isLight) {
+              ctx.fillStyle = `rgba(100, 100, 110, ${Math.max(0, Math.min(1, star.alpha * 0.35))})`;
+            } else {
+              ctx.fillStyle = `rgba(220, 220, 220, ${Math.max(0, Math.min(1, star.alpha))})`;
+            }
+            ctx.fill();
+          }
+
+          rafId = requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        let resizeTimer = null;
+        window.addEventListener('resize', () => {
+          if (rafId) cancelAnimationFrame(rafId);
+          clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(() => {
+            resize();
+            animate();
+          }, 150);
+        }, { passive: true });
+
+        document.addEventListener('visibilitychange', () => {
+          if (document.hidden && rafId) {
+            cancelAnimationFrame(rafId);
+            rafId = null;
+          } else if (!document.hidden && !rafId) {
+            animate();
+          }
+        });
+      })();
+
+      // Theme Switcher & Persistence
+      (function initTheme() {
+        const themeBtn = document.getElementById('theme-toggle-btn');
+        if (!themeBtn) return;
+
+        function updateAria(theme) {
+          if (theme === 'light') {
+            themeBtn.setAttribute('aria-label', '切换至深色主题');
+            themeBtn.setAttribute('title', '切换至深色主题');
+          } else {
+            themeBtn.setAttribute('aria-label', '切换至浅色主题');
+            themeBtn.setAttribute('title', '切换至浅色主题');
+          }
+        }
+
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+        updateAria(currentTheme);
+
+        themeBtn.addEventListener('click', () => {
+          const isCurrentLight = document.documentElement.getAttribute('data-theme') === 'light';
+          const newTheme = isCurrentLight ? 'dark' : 'light';
+          document.documentElement.setAttribute('data-theme', newTheme);
+          try {
+            localStorage.setItem('bxks_theme', newTheme);
+          } catch (e) {}
+          updateAria(newTheme);
+        });
+      })();
+
+      // Main Title Mirror Websites Dropdown (Hover & Click Dropdown)
+      (function initMirrorMenu() {
+        const wrapper = document.getElementById('brand-title-wrapper');
+        const title = document.getElementById('brand-title');
+        if (!wrapper || !title) return;
+
+        function toggleMenu(e) {
+          e.stopPropagation();
+          const isOpen = wrapper.classList.toggle('is-open');
+          title.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        }
+
+        function closeMenu() {
+          if (wrapper.classList.contains('is-open')) {
+            wrapper.classList.remove('is-open');
+            title.setAttribute('aria-expanded', 'false');
+          }
+        }
+
+        title.addEventListener('click', toggleMenu);
+        title.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggleMenu(e);
+          }
+        });
+
+        // Close on clicking outside
+        document.addEventListener('click', (e) => {
+          if (!wrapper.contains(e.target)) {
+            closeMenu();
+          }
+        });
+
+        // Close on pressing Escape
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            closeMenu();
+          }
+        });
+
+        // Close on clicking any mirror link
+        const links = wrapper.querySelectorAll('.mirror-link');
+        links.forEach(link => {
+          link.addEventListener('click', () => {
+            closeMenu();
+          });
+        });
+      })();
+
+      // First-time User Hint Logic
+      (function initFirstTimeHint() {
+        const hint = document.getElementById('title-hint-tooltip');
+        const closeBtn = document.getElementById('hint-close-btn');
+        const titleWrapper = document.getElementById('brand-title-wrapper');
+        const title = document.getElementById('brand-title');
+        if (!hint) return;
+
+        const HINT_KEY = 'bxks_mirror_hint_seen';
+
+        function dismissHint() {
+          if (!hint.classList.contains('is-visible')) return;
+          hint.classList.remove('is-visible');
+          hint.setAttribute('aria-hidden', 'true');
+          try {
+            localStorage.setItem(HINT_KEY, '1');
+          } catch (e) {}
+        }
+
+        // Check if user has already seen hint
+        let hasSeen = false;
+        try {
+          hasSeen = !!localStorage.getItem(HINT_KEY);
+        } catch (e) {}
+
+        if (!hasSeen) {
+          // Show hint after a gentle entrance delay (600ms)
+          setTimeout(() => {
+            hint.classList.add('is-visible');
+            hint.setAttribute('aria-hidden', 'false');
+          }, 600);
+
+          if (closeBtn) {
+            closeBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              dismissHint();
+            });
+          }
+
+          if (title) {
+            title.addEventListener('click', dismissHint);
+          }
+          if (titleWrapper) {
+            titleWrapper.addEventListener('mouseenter', dismissHint);
+          }
+        }
+      })();
     })();
   </script>
 </body>
