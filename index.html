@@ -1236,6 +1236,28 @@
           <ul class="mirror-list">
             <li role="none">
               <a
+                href="https://libb.la"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mirror-link"
+                role="menuitem"
+              >
+                <span class="mirror-domain">https://libb.la</span>
+              </a>
+            </li>
+            <li role="none">
+              <a
+                href="https://z-library.website"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mirror-link"
+                role="menuitem"
+              >
+                <span class="mirror-domain">https://z-library.website</span>
+              </a>
+            </li>
+            <li role="none">
+              <a
                 href="https://zh.swe101.ru"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -1300,6 +1322,18 @@
                 role="menuitem"
               >
                 <span class="mirror-domain">https://z-lib.gd</span>
+              </a>
+            </li>
+            <li role="none">
+              <a
+                href="https://library-access.sk"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mirror-link"
+                role="menuitem"
+              >
+                <span class="mirror-domain">https://library-access.sk</span>
+                <span class="mirror-rec-text">官方防丢渠道</span>
               </a>
             </li>
             <li role="none">
@@ -1490,12 +1524,12 @@
         { title: '生命3.0', author: '迈克斯·泰格马克' }
       ];
 
-      // Search engine configurations (unblocked mirrors with 50/50 distribution):
-      // https://zh.swe101.ru: 50%
-      // https://zh.101isfj.ru: 50%
+      // Search engine configurations (distributed evenly across active mirrors, 25% each):
       const SEARCH_ENGINES = [
-        { domain: 'https://zh.swe101.ru', weight: 0.50 },
-        { domain: 'https://zh.101isfj.ru', weight: 0.50 }
+        { domain: 'https://libb.la', weight: 0.25 },
+        { domain: 'https://z-library.website', weight: 0.25 },
+        { domain: 'https://zh.swe101.ru', weight: 0.25 },
+        { domain: 'https://zh.101isfj.ru', weight: 0.25 }
       ];
 
       /**
