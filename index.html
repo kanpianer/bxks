@@ -1236,6 +1236,18 @@
           <ul class="mirror-list">
             <li role="none">
               <a
+                href="https://zh.swe101.ru"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mirror-link"
+                role="menuitem"
+              >
+                <span class="mirror-domain">https://zh.swe101.ru</span>
+                <span class="mirror-rec-text">没墙</span>
+              </a>
+            </li>
+            <li role="none">
+              <a
                 href="https://zh.101isfj.ru"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -1478,15 +1490,12 @@
         { title: '生命3.0', author: '迈克斯·泰格马克' }
       ];
 
-      // Search engine configurations with weighted probabilities:
-      // https://zh.101isfj.ru: 70%
-      // Others: 7.5% each (total 30%)
+      // Search engine configurations (unblocked mirrors with 50/50 distribution):
+      // https://zh.swe101.ru: 50%
+      // https://zh.101isfj.ru: 50%
       const SEARCH_ENGINES = [
-        { domain: 'https://zh.101isfj.ru', weight: 0.70 },
-        { domain: 'https://z-lib.by', weight: 0.075 },
-        { domain: 'https://1lib.sk', weight: 0.075 },
-        { domain: 'https://z-lib.gd', weight: 0.075 },
-        { domain: 'https://zlib.bz', weight: 0.075 }
+        { domain: 'https://zh.swe101.ru', weight: 0.50 },
+        { domain: 'https://zh.101isfj.ru', weight: 0.50 }
       ];
 
       /**
