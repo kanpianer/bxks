@@ -457,10 +457,24 @@
       transition: width 0.3s ease;
     }
 
-    /* Mobile: Full-width responsive layout with comfortable touch & reading margins */
+    /* Mobile: Full-width responsive layout & swap positions of book and search */
     @media (max-width: 640px) {
+      .header {
+        order: 1;
+      }
+      .book-display-section {
+        order: 2;
+        margin-top: 0;
+        margin-bottom: clamp(14px, 3vh, 28px);
+      }
       .search-section {
+        order: 3;
         width: 100%;
+        margin-bottom: clamp(16px, 3vh, 28px);
+      }
+      .app-footer {
+        order: 4;
+        margin-top: 0;
       }
     }
 
@@ -1106,7 +1120,11 @@
 
     @media (max-width: 480px) {
       .app-container {
-        padding-top: 42px;
+        padding-top: clamp(28px, 5vh, 38px);
+        padding-bottom: 24px;
+      }
+      .header {
+        margin-bottom: clamp(12px, 2.5vh, 20px);
       }
       .theme-toggle-btn {
         top: 12px;
