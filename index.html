@@ -1498,32 +1498,69 @@
       let isTransitioning = false;
       const CYCLE_INTERVAL = 3200; // 3.2 seconds per book
 
-      // Shuffle playlist to guarantee every book is shown in random order without consecutive duplicates
-      let shufflePool = [];
+      // ========================================================
+      // Rolling 5-Book Lookahead Preloading Engine
+      // Maintains a 5-book upcoming queue and preloads cover images in advance
+      // ========================================================
+      const LOOKAHEAD_COUNT = 5;
+      const upcomingQueue = [];
+      let shuffleBag = [];
+      const preloadedImageSet = new Set([0]); // Book 0 (物种起源) is rendered in initial HTML
 
-      function getNextBookIndex() {
-        if (shufflePool.length === 0) {
-          const pool = Array.from({ length: BOOK_LIST.length }, (_, i) => i);
-          // Fisher-Yates shuffle
-          for (let i = pool.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [pool[i], pool[j]] = [pool[j], pool[i]];
-          }
-          // Avoid matching the currently displayed book at shuffle pool boundaries
-          if (pool[0] === currentBookIndex && pool.length > 1) {
-            const swapIdx = 1 + Math.floor(Math.random() * (pool.length - 1));
-            [pool[0], pool[swapIdx]] = [pool[swapIdx], pool[0]];
-          }
-          shufflePool = pool;
+      function preloadBookImage(idx) {
+        if (preloadedImageSet.has(idx)) return;
+        preloadedImageSet.add(idx);
+        const img = new Image();
+        img.decoding = 'async';
+        img.src = `assets/images/book_${idx}.jpg`;
+        if (typeof img.decode === 'function') {
+          img.decode().catch(() => {});
         }
-        return shufflePool.shift();
       }
 
-      // Preload all 40 book images for instant, flicker-free transitions
-      BOOK_LIST.forEach((_, idx) => {
-        const img = new Image();
-        img.src = `assets/images/book_${idx}.jpg`;
-      });
+      function fillShuffleBag() {
+        const pool = Array.from({ length: BOOK_LIST.length }, (_, i) => i);
+        // Fisher-Yates shuffle
+        for (let i = pool.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [pool[i], pool[j]] = [pool[j], pool[i]];
+        }
+        // Avoid matching the last item in the upcoming queue or the current book
+        const lastQueuedBook = upcomingQueue.length > 0 
+          ? upcomingQueue[upcomingQueue.length - 1] 
+          : currentBookIndex;
+
+        if (pool[0] === lastQueuedBook && pool.length > 1) {
+          const swapIdx = 1 + Math.floor(Math.random() * (pool.length - 1));
+          [pool[0], pool[swapIdx]] = [pool[swapIdx], pool[0]];
+        }
+        shuffleBag = pool;
+      }
+
+      function ensureUpcomingQueue(count = LOOKAHEAD_COUNT) {
+        while (upcomingQueue.length < count) {
+          if (shuffleBag.length === 0) {
+            fillShuffleBag();
+          }
+          upcomingQueue.push(shuffleBag.shift());
+        }
+
+        // Preload upcoming images in the lookahead buffer
+        for (let i = 0; i < upcomingQueue.length; i++) {
+          preloadBookImage(upcomingQueue[i]);
+        }
+      }
+
+      function getNextBookIndex() {
+        ensureUpcomingQueue(LOOKAHEAD_COUNT);
+        const nextIdx = upcomingQueue.shift();
+        // Keep the upcoming buffer full with the next 5 books ahead
+        ensureUpcomingQueue(LOOKAHEAD_COUNT);
+        return nextIdx;
+      }
+
+      // Initialize the lookahead buffer so the next 5 books are already loaded on initial page load
+      ensureUpcomingQueue(LOOKAHEAD_COUNT);
 
       /**
        * Cycle Prompt & 3D Book Cover Synchronously:
