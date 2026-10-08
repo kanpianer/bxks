@@ -581,7 +581,7 @@
       text-overflow: ellipsis;
       max-width: 100%;
       will-change: transform, opacity;
-      transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: transform 0.68s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.68s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     /* Upward Scrolling: Center -> Exit Up, Enter Down -> Center */
@@ -731,6 +731,9 @@
         inset 16px 0 10px -10px rgba(0, 0, 0, 0.7),
         inset 0 0 1px rgba(255, 255, 255, 0.12);
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
       padding: 22px 20px 24px 28px;
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
@@ -759,44 +762,6 @@
         repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.035) 0, rgba(255, 255, 255, 0.035) 1px, transparent 0, transparent 9px),
         repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.035) 0, rgba(255, 255, 255, 0.035) 1px, transparent 0, transparent 9px);
       pointer-events: none;
-    }
-
-    /* Front Cover Animated Stage & Double-Buffered Cards */
-    .cover-stage {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      z-index: 2;
-    }
-
-    .cover-card {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      will-change: transform, opacity;
-      transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    /* Upward Scrolling: Center -> Exit Up, Enter Down -> Center */
-    .cover-card.state-center {
-      transform: translateY(0);
-      opacity: 1;
-    }
-
-    .cover-card.state-exit-up {
-      transform: translateY(-44px);
-      opacity: 0;
-    }
-
-    .cover-card.state-enter-down {
-      transform: translateY(44px);
-      opacity: 0;
     }
 
     /* Front Cover Content Elements */
@@ -832,16 +797,35 @@
     }
 
     .cover-image {
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
       object-position: center 20%;
       filter: grayscale(100%) contrast(115%) brightness(95%);
       opacity: 0.92;
-      transition: opacity 0.35s ease, transform 0.35s ease;
-      will-change: opacity, transform;
+      will-change: transform, opacity;
+      transition: transform 0.68s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.68s cubic-bezier(0.16, 1, 0.3, 1);
       user-select: none;
       -webkit-user-drag: none;
+    }
+
+    /* Cover Image Upward Transition States */
+    .cover-image.state-center {
+      transform: translateY(0);
+      opacity: 0.92;
+    }
+
+    .cover-image.state-exit-up {
+      transform: translateY(-100%);
+      opacity: 0;
+    }
+
+    .cover-image.state-enter-down {
+      transform: translateY(100%);
+      opacity: 0;
     }
 
     .cover-image-area::after {
@@ -851,11 +835,39 @@
       border-radius: inherit;
       box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.7);
       pointer-events: none;
+      z-index: 3;
+    }
+
+    /* Cover Footer Stage (Author & Title) */
+    .cover-footer-stage {
+      position: relative;
+      z-index: 2;
+      height: 72px;
+      overflow: hidden;
     }
 
     .cover-footer {
-      position: relative;
-      z-index: 2;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      will-change: transform, opacity;
+      transition: transform 0.68s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.68s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .cover-footer.state-center {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .cover-footer.state-exit-up {
+      transform: translateY(-24px);
+      opacity: 0;
+    }
+
+    .cover-footer.state-enter-down {
+      transform: translateY(24px);
+      opacity: 0;
     }
 
     .cover-author {
@@ -1147,7 +1159,7 @@
       canvas#stars {
         display: none;
       }
-      .ticker-item, .cover-card, .spine-title {
+      .ticker-item, .cover-image, .cover-footer, .spine-title {
         transition: none !important;
       }
     }
@@ -1345,28 +1357,27 @@
             <div class="book-face-front" id="book-face-front">
               <div class="book-crosshatch-bg" aria-hidden="true"></div>
               
-              <div class="cover-stage" id="cover-stage">
-                <div class="cover-card state-center" id="cover-card">
-                  <div class="cover-header">
-                    <div class="cover-series-tag">Z-LIBRARY EDITION</div>
-                  </div>
+              <div class="cover-header">
+                <div class="cover-series-tag">Z-LIBRARY EDITION</div>
+              </div>
 
-                  <!-- Central Subject/Author Representative Image -->
-                  <div class="cover-image-area" aria-hidden="true">
-                    <img 
-                      id="cover-image" 
-                      class="cover-image" 
-                      src="assets/images/book_0.jpg" 
-                      alt="" 
-                      loading="eager" 
-                      decoding="async" 
-                    />
-                  </div>
+              <!-- Central Subject/Author Representative Image Area -->
+              <div class="cover-image-area" id="cover-image-area" aria-hidden="true">
+                <img 
+                  id="cover-image" 
+                  class="cover-image state-center" 
+                  src="assets/images/book_0.jpg" 
+                  alt="" 
+                  loading="eager" 
+                  decoding="async" 
+                />
+              </div>
 
-                  <div class="cover-footer">
-                    <div class="cover-author" id="cover-author">达尔文</div>
-                    <h2 class="cover-main-title" id="cover-main-title">物种起源</h2>
-                  </div>
+              <!-- Cover Footer Stage (Author & Title) -->
+              <div class="cover-footer-stage" id="cover-footer-stage">
+                <div class="cover-footer state-center" id="cover-footer">
+                  <div class="cover-author" id="cover-author">达尔文</div>
+                  <h2 class="cover-main-title" id="cover-main-title">物种起源</h2>
                 </div>
               </div>
             </div>
@@ -1490,7 +1501,8 @@
       const searchContainer = document.getElementById('search-field-container');
       const tickerStage = document.getElementById('ticker-stage');
       const bookDisplaySection = document.getElementById('book-display-section');
-      const coverStage = document.getElementById('cover-stage');
+      const coverImageArea = document.getElementById('cover-image-area');
+      const coverFooterStage = document.getElementById('cover-footer-stage');
       const spineTitle = document.getElementById('spine-title');
 
       let currentBookIndex = 0;
@@ -1564,9 +1576,10 @@
 
       /**
        * Cycle Prompt & 3D Book Cover Synchronously:
-       * Both search box title and book cover scroll upwards in sync with random book selection.
-       * - Old title & cover card exit upward: translateY(-...), opacity: 0
-       * - New title & cover card enter from bottom: starts at translateY(+...), moves to translateY(0)
+       * Both search box title, cover image, and cover footer scroll upwards in sync with random book selection.
+       * - Old title, cover image, and footer exit upward: translateY(-...), opacity: 0
+       * - New title, cover image, and footer enter from bottom: starts at translateY(+...), moves to translateY(0)
+       * Transition duration: 0.68s (+50% from 0.45s)
        */
       function transitionToNextBook() {
         if (isTransitioning) return;
@@ -1582,47 +1595,55 @@
         newItem.textContent = nextBook.title;
         tickerStage.appendChild(newItem);
 
-        // 2. Prepare 3D book cover transition (moves UP in sync)
-        const currentCoverCard = document.getElementById('cover-card');
-        const newCoverCard = document.createElement('div');
-        newCoverCard.className = 'cover-card state-enter-down';
-        newCoverCard.innerHTML = `
-          <div class="cover-header">
-            <div class="cover-series-tag">Z-LIBRARY EDITION</div>
-          </div>
-          <div class="cover-image-area" aria-hidden="true">
-            <img class="cover-image" src="assets/images/book_${nextIndex}.jpg" alt="" loading="eager" decoding="async" />
-          </div>
-          <div class="cover-footer">
-            <div class="cover-author">${nextBook.author}</div>
-            <h2 class="cover-main-title">${nextBook.title}</h2>
-          </div>
-        `;
-        if (coverStage) {
-          coverStage.appendChild(newCoverCard);
+        // 2. Prepare 3D book cover image transition (enters from bottom into image display area, old exits up)
+        const currentImage = document.getElementById('cover-image');
+        const newImage = document.createElement('img');
+        newImage.className = 'cover-image state-enter-down';
+        newImage.src = `assets/images/book_${nextIndex}.jpg`;
+        newImage.alt = '';
+        newImage.loading = 'eager';
+        newImage.decoding = 'async';
+        if (coverImageArea) {
+          coverImageArea.appendChild(newImage);
         }
 
-        // 3. Spine title subtle cross-fade
+        // 3. Prepare 3D book cover footer transition (author & title move UP in sync)
+        const currentFooter = document.getElementById('cover-footer');
+        const newFooter = document.createElement('div');
+        newFooter.className = 'cover-footer state-enter-down';
+        newFooter.innerHTML = `
+          <div class="cover-author">${nextBook.author}</div>
+          <h2 class="cover-main-title">${nextBook.title}</h2>
+        `;
+        if (coverFooterStage) {
+          coverFooterStage.appendChild(newFooter);
+        }
+
+        // 4. Spine title subtle cross-fade
         if (spineTitle) {
           spineTitle.style.opacity = '0';
         }
 
         // Force browser layout reflow
         void newItem.offsetWidth;
-        if (newCoverCard) {
-          void newCoverCard.offsetWidth;
-        }
+        if (newImage) void newImage.offsetWidth;
+        if (newFooter) void newFooter.offsetWidth;
 
-        // Trigger simultaneous upward animations
+        // Trigger simultaneous upward animations (duration: 0.68s)
         if (currentItem) {
           currentItem.className = 'ticker-item state-exit-up';
         }
         newItem.className = 'ticker-item state-center';
 
-        if (currentCoverCard) {
-          currentCoverCard.className = 'cover-card state-exit-up';
+        if (currentImage) {
+          currentImage.className = 'cover-image state-exit-up';
         }
-        newCoverCard.className = 'cover-card state-center';
+        newImage.className = 'cover-image state-center';
+
+        if (currentFooter) {
+          currentFooter.className = 'cover-footer state-exit-up';
+        }
+        newFooter.className = 'cover-footer state-center';
 
         // Update spine text midway and fade back in
         setTimeout(() => {
@@ -1630,23 +1651,28 @@
             spineTitle.textContent = nextBook.title;
             spineTitle.style.opacity = '1';
           }
-        }, 200);
+        }, 300);
 
-        // Cleanup old elements after animation completes
+        // Cleanup old elements after 0.68s animation completes (700ms)
         setTimeout(() => {
           if (currentItem && currentItem.parentNode === tickerStage) {
             tickerStage.removeChild(currentItem);
           }
           newItem.id = 'ticker-item';
 
-          if (currentCoverCard && coverStage && currentCoverCard.parentNode === coverStage) {
-            coverStage.removeChild(currentCoverCard);
+          if (currentImage && coverImageArea && currentImage.parentNode === coverImageArea) {
+            coverImageArea.removeChild(currentImage);
           }
-          newCoverCard.id = 'cover-card';
+          newImage.id = 'cover-image';
+
+          if (currentFooter && coverFooterStage && currentFooter.parentNode === coverFooterStage) {
+            coverFooterStage.removeChild(currentFooter);
+          }
+          newFooter.id = 'cover-footer';
 
           currentBookIndex = nextIndex;
           isTransitioning = false;
-        }, 460);
+        }, 700);
       }
 
       function startTicker() {
