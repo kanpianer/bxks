@@ -1415,7 +1415,7 @@
     </section>
 
     <!-- Synchronized 3D Floating Book Cover Section (Interactive Hover & Drag) -->
-    <section class="book-display-section" id="book-display-section" title="可拖拽互动，点击在新标签页搜索本书" aria-label="当前推荐书籍立体封面展示">
+    <section class="book-display-section" id="book-display-section" title="可拖拽互动" aria-label="当前推荐书籍立体封面展示">
       <div class="book-stage">
         <div class="book-float-wrapper" id="book-float-wrapper">
           <div class="book-3d" id="book-3d">
@@ -1837,14 +1837,12 @@
         let isPointerDown = false;
         let startPointerX = 0;
         let startPointerY = 0;
-        let totalDragDistance = 0;
 
         // Unified Pointer Events (Mouse + Touch + Pen)
         bookDisplaySection.addEventListener('pointerdown', (e) => {
           isPointerDown = true;
           startPointerX = e.clientX;
           startPointerY = e.clientY;
-          totalDragDistance = 0;
           bookDisplaySection.classList.add('is-dragging');
           try {
             bookDisplaySection.setPointerCapture(e.pointerId);
@@ -1859,7 +1857,6 @@
           if (isPointerDown) {
             const dx = e.clientX - startPointerX;
             const dy = e.clientY - startPointerY;
-            totalDragDistance = Math.hypot(dx, dy);
 
             // Drag offsets within small bounded angles
             dragYaw = Math.max(-18, Math.min(18, dx * 0.16));
@@ -1889,11 +1886,6 @@
           dragPitch = 0;
           dragTransX = 0;
           dragTransY = 0;
-
-          // If dragged less than 6px, treat as pure click -> trigger search
-          if (totalDragDistance < 6) {
-            performSearch(BOOK_LIST[currentBookIndex].title);
-          }
         }
 
         bookDisplaySection.addEventListener('pointerup', handlePointerUp);
