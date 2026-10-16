@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "updatedAt": "2026-10-16T18:08:47Z",
+  "dropdown": {
+    "title": "Z-Library 镜像列表",
+    "tip": "点击访问"
+  },
+  "mirrors": [
+    {
+      "url": "https://libb.la",
+      "label": "没墙",
+      "enabled": true
+    },
+    {
+      "url": "https://z-library.website",
+      "label": "没墙",
+      "enabled": true
+    },
+    {
+      "url": "https://zh.swe101.ru",
+      "label": "没墙",
+      "enabled": true
+    },
+    {
+      "url": "https://zh.101isfj.ru",
+      "label": "没墙",
+      "enabled": true
+    },
+    {
+      "url": "https://1lib.sk",
+      "label": "",
+      "enabled": true
+    },
+    {
+      "url": "https://z-lib.sk/",
+      "label": "",
+      "enabled": true
+    },
+    {
+      "url": "https://z-lib.by",
+      "label": "",
+      "enabled": true
+    },
+    {
+      "url": "https://z-lib.gd",
+      "label": "",
+      "enabled": true
+    },
+    {
+      "url": "https://library-access.sk",
+      "label": "官方防丢渠道",
+      "enabled": true
+    },
+    {
+      "url": "https://bxks.sld.tw",
+      "label": "本站镜像",
+      "enabled": true
+    },
+    {
+      "url": "https://bxks.pages.dev",
+      "label": "本站镜像",
+      "enabled": true
+    }
+  ],
+  "searchEngines": [
+    {
+      "domain": "https://libb.la",
+      "weight": 25,
+      "enabled": true
+    },
+    {
+      "domain": "https://z-library.website",
+      "weight": 25,
+      "enabled": true
+    },
+    {
+      "domain": "https://zh.swe101.ru",
+      "weight": 25,
+      "enabled": true
+    },
+    {
+      "domain": "https://zh.101isfj.ru",
+      "weight": 25,
+      "enabled": true
+    }
+  ]
+}

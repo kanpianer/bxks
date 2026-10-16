@@ -1,0 +1,8 @@
+{
+  "owner": "kanpianer",
+  "repo": "bxks",
+  "branch": "main",
+  "dataPath": "data/mirrors.json",
+  "localPreviewPath": "../data/mirrors.json",
+  "homePath": "../index.html"
+}

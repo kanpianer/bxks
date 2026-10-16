@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark light" />
+  <meta name="robots" content="noindex, nofollow, noarchive" />
+  <title>镜像内容管理 - 不想看书</title>
+
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@300;400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.1.0/style.css" />
+
+  <!-- Shares the theme key with the main site -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('bxks_theme');
+        document.documentElement.setAttribute('data-theme', saved === 'light' ? 'light' : 'dark');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+
+  <style>
+    /* Same strict monochrome palette as the main site */
+    :root,
+    [data-theme="dark"] {
+      --bg: #090a0c;
+      --fg: #f4f4f5;
+      --fg-muted: #a1a1aa;
+      --fg-subtle: #71717a;
+
+      --search-bg: rgba(24, 24, 27, 0.85);
+      --search-border: #3f3f46;
+      --search-border-hover: #52525b;
+      --search-focus-ring: rgba(212, 212, 216, 0.22);
+      --search-focus-border: #a1a1aa;
+
+      --btn-bg: #27272a;
+      --btn-bg-hover: #3f3f46;
+      --btn-border: #3f3f46;
+      --btn-fg: #f4f4f5;
+
+      --hover-bg: rgba(255, 255, 255, 0.06);
+
+      --font-family: 'LXGW WenKai', 'LXGW WenKai TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    [data-theme="light"] {
+      --bg: #f5f5f7;
+      --fg: #18181b;
+      --fg-muted: #52525b;
+      --fg-subtle: #71717a;
+
+      --search-bg: rgba(255, 255, 255, 0.95);
+      --search-border: #d4d4d8;
+      --search-border-hover: #a1a1aa;
+      --search-focus-ring: rgba(0, 0, 0, 0.12);
+      --search-focus-border: #52525b;
+
+      --btn-bg: #18181b;
+      --btn-bg-hover: #27272a;
+      --btn-border: #18181b;
+      --btn-fg: #ffffff;
+
+      --hover-bg: rgba(0, 0, 0, 0.05);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      background-color: var(--bg);
+      color: var(--fg);
+      font-family: var(--font-family);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    /* ---------- Top bar ---------- */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px clamp(14px, 4vw, 26px);
+      border-bottom: 1px solid var(--search-border);
+      background: var(--bg);
+    }
+
+    .topbar a.back {
+      color: var(--fg-muted);
+      text-decoration: none;
+      font-size: 0.88rem;
+      white-space: nowrap;
+      transition: color 0.15s ease;
+    }
+
+    .topbar a.back:hover { color: var(--fg); }
+
+    .topbar h1 {
+      margin: 0;
+      font-size: 0.98rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+    }
+
+    .topbar .spacer { flex: 1 1 auto; }
+
+    .theme-toggle-btn {
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: var(--fg-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .theme-toggle-btn:hover { color: var(--fg); transform: scale(1.1); }
+    .theme-toggle-btn:active { transform: scale(0.92); }
+    .theme-toggle-btn:focus-visible { outline: 2px solid var(--search-focus-border); outline-offset: 2px; border-radius: 6px; }
+    .theme-icon { width: 19px; height: 19px; display: block; }
+    .theme-toggle-btn .icon-moon { display: none; }
+    [data-theme="light"] .theme-toggle-btn .icon-sun { display: none; }
+    [data-theme="light"] .theme-toggle-btn .icon-moon { display: block; }
+
+    /* ---------- Layout ---------- */
+    .wrap {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: clamp(18px, 4vw, 32px) clamp(14px, 4vw, 26px) 96px;
+    }
+
+    .panel {
+      border: 1px solid var(--search-border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .panel > h2 {
+      margin: 0 0 4px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+    }
+
+    .panel > .desc {
+      margin: 0 0 14px;
+      font-size: 0.77rem;
+      line-height: 1.65;
+      color: var(--fg-subtle);
+    }
+
+    .panel > .desc:last-child { margin-bottom: 0; }
+
+    /* ---------- Fields ---------- */
+    input[type="text"],
+    input[type="password"],
+    input[type="number"] {
+      width: 100%;
+      background: var(--search-bg);
+      border: 1px solid var(--search-border);
+      border-radius: 8px;
+      color: var(--fg);
+      font-family: inherit;
+      font-size: 0.88rem;
+      padding: 8px 10px;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    input::placeholder { color: var(--fg-subtle); opacity: 0.75; }
+
+    input:hover { border-color: var(--search-border-hover); }
+
+    input:focus {
+      border-color: var(--search-focus-border);
+      box-shadow: 0 0 0 3px var(--search-focus-ring);
+    }
+
+    .fields {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      flex: 1 1 180px;
+      min-width: 0;
+    }
+
+    .field > span {
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+      color: var(--fg-subtle);
+    }
+
+    .check {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.76rem;
+      color: var(--fg-muted);
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .check input { accent-color: #71717a; width: 14px; height: 14px; margin: 0; cursor: pointer; }
+
+    /* ---------- Rows ---------- */
+    .rows { display: flex; flex-direction: column; }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+      border-top: 1px solid var(--hover-bg);
+    }
+
+    .row:first-child { border-top: none; }
+
+    .row .grow { flex: 1 1 240px; min-width: 0; }
+    .row .w-label { flex: 0 1 168px; min-width: 120px; }
+    .row .w-weight { flex: 0 0 84px; }
+    .row .pct {
+      flex: 0 0 52px;
+      font-size: 0.74rem;
+      color: var(--fg-subtle);
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    .row .actions { display: flex; gap: 2px; margin-left: auto; }
+
+    .icon-btn {
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--search-border);
+      border-radius: 7px;
+      background: transparent;
+      color: var(--fg-muted);
+      font-family: inherit;
+      font-size: 0.86rem;
+      line-height: 1;
+      cursor: pointer;
+      transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+    }
+
+    .icon-btn:hover { color: var(--fg); border-color: var(--search-border-hover); background: var(--hover-bg); }
+    .icon-btn:disabled { opacity: 0.28; cursor: not-allowed; border-color: transparent; color: var(--fg-subtle); background: transparent; }
+    .icon-btn.del-btn { width: auto; padding: 0 9px; font-size: 0.76rem; }
+
+    /* ---------- Buttons ---------- */
+    .btn {
+      font-family: inherit;
+      font-size: 0.82rem;
+      padding: 8px 15px;
+      border-radius: 8px;
+      border: 1px solid var(--btn-border);
+      background: var(--btn-bg);
+      color: var(--btn-fg);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background-color 0.15s ease, opacity 0.15s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn:hover { background: var(--btn-bg-hover); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn:focus-visible { outline: 2px solid var(--search-focus-border); outline-offset: 2px; }
+
+    .btn-ghost {
+      background: transparent;
+      border-color: var(--search-border);
+      color: var(--fg-muted);
+    }
+
+    .btn-ghost:hover { background: var(--hover-bg); color: var(--fg); }
+
+    .actions-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .actions-bar .btn { flex: 0 0 auto; }
+
+    .hint {
+      font-size: 0.74rem;
+      line-height: 1.6;
+      color: var(--fg-subtle);
+      margin: 10px 0 0;
+    }
+
+    .hint strong { color: var(--fg-muted); font-weight: 700; }
+
+    /* ---------- Log ---------- */
+    #log {
+      margin: 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.75rem;
+      line-height: 1.75;
+      color: var(--fg-muted);
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 240px;
+      overflow: auto;
+    }
+
+    #log .err { color: var(--fg); font-weight: 700; }
+    #log .ok { color: var(--fg); }
+    #log .warn { color: var(--fg-muted); font-weight: 700; }
+
+    @media (max-width: 560px) {
+      .row .w-label { flex: 1 1 130px; }
+      .row .actions { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <a class="back" href="../index.html">← 不想看书</a>
+    <h1>镜像内容管理</h1>
+    <span class="spacer"></span>
+    <button id="theme-toggle-btn" class="theme-toggle-btn" type="button" aria-label="切换黑白主题" title="切换黑白主题">
+      <svg class="theme-icon icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="4.2"></circle>
+        <line x1="12" y1="1.8" x2="12" y2="4.5"></line>
+        <line x1="12" y1="19.5" x2="12" y2="22.2"></line>
+        <line x1="1.8" y1="12" x2="4.5" y2="12"></line>
+        <line x1="19.5" y1="12" x2="22.2" y2="12"></line>
+        <line x1="4.8" y1="4.8" x2="6.7" y2="6.7"></line>
+        <line x1="17.3" y1="17.3" x2="19.2" y2="19.2"></line>
+        <line x1="4.8" y1="19.2" x2="6.7" y2="17.3"></line>
+        <line x1="17.3" y1="6.7" x2="19.2" y2="4.8"></line>
+      </svg>
+      <svg class="theme-icon icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+      </svg>
+    </button>
+  </div>
+
+  <main class="wrap">
+    <!-- 1. Repository & token -->
+    <section class="panel">
+      <h2>仓库与令牌</h2>
+      <p class="desc">
+        打开本页会自动从 GitHub 拉取 <code id="path-echo">data/mirrors.json</code> 的最新内容（公开仓库无需令牌即可读取）。
+        填写 Personal Access Token 后即可提交更新，GitHub Pages 通常 1 分钟内生效；当前域名为 <span id="domain-echo">-</span>，任何镜像域名都能使用本页。
+      </p>
+
+      <div class="field" style="margin-bottom: 12px;">
+        <span>GitHub Personal Access Token</span>
+        <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_... 或 ghp_..." />
+      </div>
+
+      <div class="fields">
+        <label class="field"><span>仓库所有者 owner</span><input id="owner" type="text" spellcheck="false" placeholder="kanpianer" /></label>
+        <label class="field"><span>仓库名 repo</span><input id="repo" type="text" spellcheck="false" placeholder="bxks" /></label>
+        <label class="field"><span>分支 branch</span><input id="branch" type="text" spellcheck="false" placeholder="main" /></label>
+        <label class="field"><span>数据文件路径</span><input id="data-path" type="text" spellcheck="false" placeholder="data/mirrors.json" /></label>
+      </div>
+
+      <div class="actions-bar">
+        <button id="btn-verify" class="btn btn-ghost" type="button">验证令牌</button>
+        <button id="btn-pull" class="btn btn-ghost" type="button">读取最新</button>
+        <label class="check"><input id="remember" type="checkbox" /> 在本机记住令牌与仓库设置</label>
+      </div>
+
+      <p class="hint">
+        建议使用 <strong>Fine-grained token</strong>，仅勾选本仓库的 <strong>Contents: Read and write</strong>，并设置较短有效期。
+        令牌只保存在本机浏览器（localStorage），不会写入仓库。
+      </p>
+    </section>
+
+    <!-- 2. Mirror list -->
+    <section class="panel">
+      <h2>镜像列表</h2>
+      <p class="desc">首页标题下拉框中的全部条目，顺序即显示顺序；关闭「启用」即从列表隐藏（不会删除）。删除按钮移除该条，刷新页面可恢复线上内容。</p>
+      <div class="rows" id="mirror-rows"></div>
+      <div class="actions-bar">
+        <button id="btn-add-mirror" class="btn btn-ghost" type="button">＋ 添加镜像</button>
+        <span class="hint" id="mirror-count" style="margin: 0;"></span>
+      </div>
+    </section>
+
+    <!-- 3. Search routing -->
+    <section class="panel">
+      <h2>搜索分发权重</h2>
+      <p class="desc">当前激活的搜索引擎，首页搜索时按权重随机分发；权重自动归一化，无需合计为 100，全部停用时按列表顺序兜底。</p>
+      <div class="rows" id="engine-rows"></div>
+      <div class="actions-bar">
+        <button id="btn-add-engine" class="btn btn-ghost" type="button">＋ 添加搜索引擎</button>
+        <button id="btn-fill-engines" class="btn btn-ghost" type="button">补全未分发的镜像域名</button>
+        <span class="hint" id="engine-total" style="margin: 0;"></span>
+      </div>
+    </section>
+
+    <!-- 4. Dropdown header -->
+    <section class="panel">
+      <h2>下拉框标题</h2>
+      <p class="desc">显示在镜像列表顶部的标题与右侧提示文字。</p>
+      <div class="fields">
+        <label class="field"><span>标题</span><input id="dropdown-title" type="text" placeholder="Z-Library 镜像列表" /></label>
+        <label class="field"><span>右侧提示</span><input id="dropdown-tip" type="text" placeholder="点击访问" /></label>
+      </div>
+    </section>
+
+    <!-- 5. Commit -->
+    <section class="panel">
+      <h2>提交更新</h2>
+      <p class="desc">提交前会自动检查远端是否有新改动，避免覆盖别人的修改。</p>
+      <div class="field" style="margin-bottom: 12px;">
+        <span>提交说明 commit message</span>
+        <input id="commit-message" type="text" spellcheck="false" placeholder="chore(mirrors): update mirror list" />
+      </div>
+      <div class="actions-bar">
+        <button id="btn-save" class="btn" type="button">提交更新</button>
+        <label class="check"><input id="force" type="checkbox" /> 强制覆盖远端</label>
+      </div>
+      <p class="hint" id="status-line">正在同步 GitHub 最新内容 …</p>
+    </section>
+
+    <!-- 6. Log -->
+    <section class="panel">
+      <h2>日志</h2>
+      <pre id="log"></pre>
+    </section>
+
+    <datalist id="label-presets">
+      <option value="没墙"></option>
+      <option value="官方防丢渠道"></option>
+      <option value="本站镜像"></option>
+      <option value="需代理"></option>
+    </datalist>
+  </main>
+
+  <script>
+    (function () {
+      'use strict';
+
+      /* ========================================================
+       * Configuration & state
+       * ======================================================== */
+      const STORAGE_KEY = 'bxks_cms_v1';
+      const DEFAULT_CONFIG = {
+        owner: 'kanpianer',
+        repo: 'bxks',
+        branch: 'main',
+        dataPath: 'data/mirrors.json',
+        localPreviewPath: '../data/mirrors.json'
+      };
+
+      const state = {
+        config: Object.assign({}, DEFAULT_CONFIG),
+        token: '',
+        remember: true,
+        dropdown: { title: 'Z-Library 镜像列表', tip: '点击访问' },
+        mirrors: [],
+        searchEngines: [],
+        baselineText: null,
+        baselineSource: '',
+        remoteSha: null,
+        dirty: false,
+        busy: false
+      };
+
+      /* Resolve paths against the CMS directory regardless of the host domain,
+         including the "/dtms" (no trailing slash) form. */
+      function pageBase() {
+        let path = window.location.pathname;
+        if (!path.endsWith('/')) {
+          const last = path.slice(path.lastIndexOf('/') + 1);
+          path = last.indexOf('.') === -1
+            ? path + '/'
+            : path.slice(0, path.lastIndexOf('/') + 1);
+        }
+        return window.location.origin + path;
+      }
+
+      function resolve(path) {
+        return new URL(path, pageBase()).toString();
+      }
+
+      const $ = function (id) { return document.getElementById(id); };
+
+      const els = {
+        token: $('token'),
+        owner: $('owner'),
+        repo: $('repo'),
+        branch: $('branch'),
+        dataPath: $('data-path'),
+        remember: $('remember'),
+        verify: $('btn-verify'),
+        pull: $('btn-pull'),
+        save: $('btn-save'),
+        force: $('force'),
+        commitMessage: $('commit-message'),
+        statusLine: $('status-line'),
+        log: $('log'),
+        mirrorRows: $('mirror-rows'),
+        engineRows: $('engine-rows'),
+        mirrorCount: $('mirror-count'),
+        engineTotal: $('engine-total'),
+        addMirror: $('btn-add-mirror'),
+        addEngine: $('btn-add-engine'),
+        fillEngines: $('btn-fill-engines'),
+        dropdownTitle: $('dropdown-title'),
+        dropdownTip: $('dropdown-tip'),
+        pathEcho: $('path-echo'),
+        domainEcho: $('domain-echo'),
+        themeToggle: $('theme-toggle-btn')
+      };
+
+      /* ========================================================
+       * Small helpers
+       * ======================================================== */
+      const LOG_LIMIT = 200;
+
+      function log(message, kind) {
+        const line = document.createElement('div');
+        if (kind) line.className = kind;
+        const stamp = new Date().toTimeString().slice(0, 8);
+        line.textContent = '[' + stamp + '] ' + message;
+        els.log.appendChild(line);
+        while (els.log.childNodes.length > LOG_LIMIT) {
+          els.log.removeChild(els.log.firstChild);
+        }
+        els.log.scrollTop = els.log.scrollHeight;
+      }
+
+      function setBusy(busy) {
+        state.busy = busy;
+        [els.verify, els.pull, els.save, els.addMirror, els.addEngine, els.fillEngines].forEach(function (btn) {
+          if (btn) btn.disabled = busy;
+        });
+      }
+
+      function markDirty() {
+        state.dirty = true;
+      }
+
+      function setStatus(text) {
+        els.statusLine.textContent = text;
+      }
+
+      function truncated(value, max) {
+        const text = String(value || '');
+        return text.length > max ? text.slice(0, max) + '…' : text;
+      }
+
+      /* UTF-8 safe base64 (GitHub contents API) */
+      function utf8ToBase64(text) {
+        const bytes = new TextEncoder().encode(text);
+        let binary = '';
+        const chunk = 0x8000;
+        for (let i = 0; i < bytes.length; i += chunk) {
+          binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+        }
+        return btoa(binary);
+      }
+
+      function base64ToUtf8(base64) {
+        const binary = atob(String(base64 || '').replace(/\s/g, ''));
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        return new TextDecoder().decode(bytes);
+      }
+
+      function el(tag, attrs, children) {
+        const node = document.createElement(tag);
+        if (attrs) {
+          Object.keys(attrs).forEach(function (key) {
+            const value = attrs[key];
+            if (value === null || value === undefined || value === false) return;
+            if (key === 'class') node.className = value;
+            else if (key === 'text') node.textContent = value;
+            else node.setAttribute(key, value);
+          });
+        }
+        if (children !== null && children !== undefined) {
+          (Array.isArray(children) ? children : [children]).forEach(function (child) {
+            if (child === null || child === undefined || child === false) return;
+            node.appendChild(child instanceof Node ? child : document.createTextNode(String(child)));
+          });
+        }
+        return node;
+      }
+
+      /* ========================================================
+       * Local persistence (never store the token in the repo)
+       * ======================================================== */
+      function saveLocal() {
+        try {
+          const payload = {
+            token: state.remember ? state.token : '',
+            remember: state.remember,
+            config: state.config
+          };
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+        } catch (e) { /* storage disabled: keep working in-memory */ }
+      }
+
+      function loadLocal() {
+        let saved = null;
+        try {
+          saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+        } catch (e) { saved = null; }
+        if (!saved) return;
+
+        state.remember = saved.remember !== false;
+        state.token = state.remember && typeof saved.token === 'string' ? saved.token : '';
+        if (saved.config) state.config = Object.assign({}, DEFAULT_CONFIG, saved.config);
+      }
+
+      /* ========================================================
+       * Form <-> state binding
+       * ======================================================== */
+      function syncFormFromState() {
+        els.token.value = state.token;
+        els.remember.checked = state.remember;
+        els.owner.value = state.config.owner || '';
+        els.repo.value = state.config.repo || '';
+        els.branch.value = state.config.branch || '';
+        els.dataPath.value = state.config.dataPath || '';
+        els.dropdownTitle.value = state.dropdown.title || '';
+        els.dropdownTip.value = state.dropdown.tip || '';
+        els.pathEcho.textContent = state.config.dataPath || DEFAULT_CONFIG.dataPath;
+        els.domainEcho.textContent = window.location.host || window.location.protocol;
+      }
+
+      function bindCredentialInputs() {
+        els.token.addEventListener('input', function () {
+          state.token = els.token.value.trim();
+          saveLocal();
+        });
+
+        els.remember.addEventListener('change', function () {
+          state.remember = els.remember.checked;
+          saveLocal();
+        });
+
+        [['owner', 'owner'], ['repo', 'repo'], ['branch', 'branch'], ['dataPath', 'dataPath']].forEach(function (pair) {
+          const input = els[pair[0]];
+          input.addEventListener('input', function () {
+            state.config[pair[1]] = input.value.trim();
+            if (pair[1] === 'dataPath') els.pathEcho.textContent = input.value.trim() || DEFAULT_CONFIG.dataPath;
+            saveLocal();
+          });
+        });
+
+        els.dropdownTitle.addEventListener('input', function () {
+          state.dropdown.title = els.dropdownTitle.value;
+          markDirty();
+        });
+
+        els.dropdownTip.addEventListener('input', function () {
+          state.dropdown.tip = els.dropdownTip.value;
+          markDirty();
+        });
+      }
+
+      /* ========================================================
+       * Mirror list rendering
+       * ======================================================== */
+      function newMirror() {
+        return { url: '', label: '', enabled: true };
+      }
+
+      function newEngine() {
+        return { domain: '', weight: 25, enabled: true };
+      }
+
+      function renderMirrors() {
+        const frag = document.createDocumentFragment();
+
+        state.mirrors.forEach(function (item, index) {
+          const urlInput = el('input', {
+            type: 'text',
+            class: 'f-url',
+            spellcheck: 'false',
+            placeholder: 'https://example.com',
+            'aria-label': '镜像域名 ' + (index + 1),
+            value: item.url
+          });
+
+          const labelInput = el('input', {
+            type: 'text',
+            class: 'f-label',
+            spellcheck: 'false',
+            list: 'label-presets',
+            placeholder: '标签（可留空）',
+            'aria-label': '标签 ' + (index + 1),
+            value: item.label
+          });
+
+          const enabledBox = el('input', { type: 'checkbox', class: 'f-enabled' });
+          enabledBox.checked = item.enabled !== false;
+
+          const actions = el('div', { class: 'actions' }, [
+            el('button', { type: 'button', class: 'icon-btn', 'data-act': 'up', title: '上移', 'aria-label': '上移', text: '↑', disabled: index === 0 }),
+            el('button', { type: 'button', class: 'icon-btn', 'data-act': 'down', title: '下移', 'aria-label': '下移', text: '↓', disabled: index === state.mirrors.length - 1 }),
+            el('button', { type: 'button', class: 'icon-btn del-btn', 'data-act': 'del', title: '删除这一条', 'aria-label': '删除这一条', text: '删除' })
+          ]);
+
+          frag.appendChild(el('div', { class: 'row', 'data-index': String(index) }, [
+            el('div', { class: 'grow' }, [urlInput]),
+            el('div', { class: 'w-label' }, [labelInput]),
+            el('label', { class: 'check' }, [enabledBox, el('span', { text: '启用' })]),
+            actions
+          ]));
+        });
+
+        els.mirrorRows.replaceChildren(frag);
+        updateCounts();
+      }
+
+      function renderEngines() {
+        const frag = document.createDocumentFragment();
+
+        state.searchEngines.forEach(function (item, index) {
+          const domainInput = el('input', {
+            type: 'text',
+            class: 'f-domain',
+            spellcheck: 'false',
+            placeholder: 'https://example.com',
+            'aria-label': '分发域名 ' + (index + 1),
+            value: item.domain
+          });
+
+          const weightInput = el('input', {
+            type: 'number',
+            class: 'f-weight',
+            min: '0',
+            step: '1',
+            'aria-label': '权重 ' + (index + 1),
+            value: String(item.weight)
+          });
+
+          const enabledBox = el('input', { type: 'checkbox', class: 'f-enabled' });
+          enabledBox.checked = item.enabled !== false;
+
+          frag.appendChild(el('div', { class: 'row', 'data-index': String(index) }, [
+            el('div', { class: 'grow' }, [domainInput]),
+            el('div', { class: 'w-weight' }, [weightInput]),
+            el('div', { class: 'pct' }, ['0%']),
+            el('label', { class: 'check' }, [enabledBox, el('span', { text: '启用' })]),
+            el('div', { class: 'actions' }, [
+              el('button', { type: 'button', class: 'icon-btn', 'data-act': 'up', title: '上移', 'aria-label': '上移', text: '↑', disabled: index === 0 }),
+              el('button', { type: 'button', class: 'icon-btn', 'data-act': 'down', title: '下移', 'aria-label': '下移', text: '↓', disabled: index === state.searchEngines.length - 1 }),
+              el('button', { type: 'button', class: 'icon-btn del-btn', 'data-act': 'del', title: '删除这一条', 'aria-label': '删除这一条', text: '删除' })
+            ])
+          ]));
+        });
+
+        els.engineRows.replaceChildren(frag);
+        updateCounts();
+      }
+
+      function updateCounts() {
+        const mirrorTotal = state.mirrors.length;
+        const mirrorOn = state.mirrors.filter(function (m) { return m.enabled !== false && String(m.url).trim(); }).length;
+        els.mirrorCount.textContent = '共 ' + mirrorTotal + ' 条，启用 ' + mirrorOn + ' 条';
+
+        const active = state.searchEngines.filter(function (e) {
+          return e.enabled !== false && String(e.domain).trim() && Number(e.weight) > 0;
+        });
+        const total = active.reduce(function (sum, e) { return sum + Number(e.weight); }, 0);
+
+        const rows = els.engineRows.querySelectorAll('.row');
+        state.searchEngines.forEach(function (item, index) {
+          const row = rows[index];
+          if (!row) return;
+          const pct = row.querySelector('.pct');
+          if (!pct) return;
+          const usable = item.enabled !== false && String(item.domain).trim() && Number(item.weight) > 0 && total > 0;
+          pct.textContent = usable ? ((Number(item.weight) / total) * 100).toFixed(1) + '%' : '-';
+        });
+
+        els.engineTotal.textContent = active.length
+          ? '参与分发 ' + active.length + ' 条，权重合计 ' + total
+          : '未配置有效的分发域名';
+      }
+
+      function bindRowEvents() {
+        function rowIndex(event) {
+          const row = event.target.closest('.row[data-index]');
+          return row ? Number(row.dataset.index) : -1;
+        }
+
+        els.mirrorRows.addEventListener('input', function (event) {
+          const index = rowIndex(event);
+          const item = state.mirrors[index];
+          if (!item) return;
+          if (event.target.classList.contains('f-url')) item.url = event.target.value;
+          else if (event.target.classList.contains('f-label')) item.label = event.target.value;
+          else if (event.target.classList.contains('f-enabled')) item.enabled = event.target.checked;
+          markDirty();
+          updateCounts();
+        });
+
+        els.mirrorRows.addEventListener('click', function (event) {
+          const button = event.target.closest('button[data-act]');
+          if (!button) return;
+          const index = rowIndex(event);
+          if (index < 0) return;
+          const act = button.dataset.act;
+
+          if (act === 'up' && index > 0) {
+            state.mirrors.splice(index - 1, 0, state.mirrors.splice(index, 1)[0]);
+          } else if (act === 'down' && index < state.mirrors.length - 1) {
+            state.mirrors.splice(index + 1, 0, state.mirrors.splice(index, 1)[0]);
+          } else if (act === 'del') {
+            state.mirrors.splice(index, 1);
+            if (!state.mirrors.length) state.mirrors.push(newMirror());
+          } else {
+            return;
+          }
+          markDirty();
+          renderMirrors();
+        });
+
+        els.engineRows.addEventListener('input', function (event) {
+          const index = rowIndex(event);
+          const item = state.searchEngines[index];
+          if (!item) return;
+          if (event.target.classList.contains('f-domain')) item.domain = event.target.value;
+          else if (event.target.classList.contains('f-weight')) item.weight = Number(event.target.value);
+          else if (event.target.classList.contains('f-enabled')) item.enabled = event.target.checked;
+          markDirty();
+          updateCounts();
+        });
+
+        els.engineRows.addEventListener('click', function (event) {
+          const button = event.target.closest('button[data-act]');
+          if (!button) return;
+          const index = rowIndex(event);
+          if (index < 0) return;
+          const act = button.dataset.act;
+
+          if (act === 'up' && index > 0) {
+            state.searchEngines.splice(index - 1, 0, state.searchEngines.splice(index, 1)[0]);
+          } else if (act === 'down' && index < state.searchEngines.length - 1) {
+            state.searchEngines.splice(index + 1, 0, state.searchEngines.splice(index, 1)[0]);
+          } else if (act === 'del') {
+            state.searchEngines.splice(index, 1);
+            if (!state.searchEngines.length) state.searchEngines.push(newEngine());
+          } else {
+            return;
+          }
+          markDirty();
+          renderEngines();
+        });
+
+        els.addMirror.addEventListener('click', function () {
+          state.mirrors.push(newMirror());
+          markDirty();
+          renderMirrors();
+          const inputs = els.mirrorRows.querySelectorAll('.f-url');
+          if (inputs.length) inputs[inputs.length - 1].focus();
+        });
+
+        els.addEngine.addEventListener('click', function () {
+          state.searchEngines.push(newEngine());
+          markDirty();
+          renderEngines();
+          const inputs = els.engineRows.querySelectorAll('.f-domain');
+          if (inputs.length) inputs[inputs.length - 1].focus();
+        });
+
+        els.fillEngines.addEventListener('click', function () {
+          const known = new Set(state.searchEngines.map(function (e) {
+            return String(e.domain).trim().replace(/\/+$/, '').toLowerCase();
+          }));
+          let added = 0;
+          state.mirrors.forEach(function (mirror) {
+            if (mirror.enabled === false) return;
+            const domain = String(mirror.url).trim().replace(/\/+$/, '');
+            if (!domain || known.has(domain.toLowerCase())) return;
+            known.add(domain.toLowerCase());
+            state.searchEngines.push({ domain: domain, weight: 25, enabled: true });
+            added++;
+          });
+          if (added) {
+            markDirty();
+            renderEngines();
+            log('已补全 ' + added + ' 个分发域名，可自行调整权重', 'ok');
+          } else {
+            log('没有需要补全的镜像域名');
+          }
+        });
+      }
+
+      /* ========================================================
+       * Data <-> document
+       * ======================================================== */
+      function normalizeMirrors(list) {
+        return (Array.isArray(list) ? list : []).map(function (item) {
+          return {
+            url: String((item && item.url) || '').trim(),
+            label: String((item && item.label) || '').trim(),
+            enabled: !item || item.enabled !== false
+          };
+        });
+      }
+
+      function normalizeEngines(list) {
+        return (Array.isArray(list) ? list : []).map(function (item) {
+          return {
+            domain: String((item && item.domain) || '').trim(),
+            weight: Number(item && item.weight) > 0 ? Number(item.weight) : 25,
+            enabled: !item || item.enabled !== false
+          };
+        });
+      }
+
+      function applyDocument(text) {
+        const data = JSON.parse(text);
+        state.dropdown = {
+          title: String((data && data.dropdown && data.dropdown.title) || 'Z-Library 镜像列表'),
+          tip: String((data && data.dropdown && data.dropdown.tip) || '')
+        };
+        state.mirrors = normalizeMirrors(data && data.mirrors);
+        state.searchEngines = normalizeEngines(data && data.searchEngines);
+        if (!state.mirrors.length) state.mirrors.push(newMirror());
+        if (!state.searchEngines.length) state.searchEngines.push(newEngine());
+        syncFormFromState();
+        renderMirrors();
+        renderEngines();
+      }
+
+      function buildDocumentText() {
+        const mirrors = state.mirrors
+          .filter(function (item) { return String(item.url).trim(); })
+          .map(function (item) {
+            return {
+              url: String(item.url).trim(),
+              label: String(item.label || '').trim(),
+              enabled: item.enabled !== false
+            };
+          });
+
+        const engines = state.searchEngines
+          .filter(function (item) { return String(item.domain).trim(); })
+          .map(function (item) {
+            const weight = Number(item.weight);
+            return {
+              domain: String(item.domain).trim().replace(/\/+$/, ''),
+              weight: weight > 0 ? weight : 0,
+              enabled: item.enabled !== false
+            };
+          });
+
+        const doc = {
+          version: 1,
+          updatedAt: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
+          dropdown: {
+            title: String(state.dropdown.title || '').trim() || 'Z-Library 镜像列表',
+            tip: String(state.dropdown.tip || '').trim()
+          },
+          mirrors: mirrors,
+          searchEngines: engines
+        };
+
+        return JSON.stringify(doc, null, 2) + '\n';
+      }
+
+      /* ========================================================
+       * GitHub REST API
+       * ======================================================== */
+      /* Reads work anonymously for public repositories, so the page can pull the
+         latest content on open without asking for a token first. */
+      function apiHeaders() {
+        const headers = {
+          Accept: 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28'
+        };
+        if (state.token) headers.Authorization = 'Bearer ' + state.token;
+        return headers;
+      }
+
+      function contentsUrl() {
+        const owner = encodeURIComponent(state.config.owner);
+        const repo = encodeURIComponent(state.config.repo);
+        const path = String(state.config.dataPath || DEFAULT_CONFIG.dataPath)
+          .split('/')
+          .filter(Boolean)
+          .map(encodeURIComponent)
+          .join('/');
+        return 'https://api.github.com/repos/' + owner + '/' + repo + '/contents/' + path;
+      }
+
+      function requireRepo() {
+        if (!state.config.owner || !state.config.repo || !state.config.branch) {
+          log('请先填写 owner、repo 与 branch', 'err');
+          return false;
+        }
+        return true;
+      }
+
+      function requireToken() {
+        if (!state.token) {
+          log('请先填写 GitHub Personal Access Token 才能提交', 'err');
+          els.token.focus();
+          return false;
+        }
+        return true;
+      }
+
+      async function readError(res) {
+        try {
+          const data = await res.json();
+          if (data && data.message) return data.message;
+        } catch (e) { /* ignore */ }
+        return 'HTTP ' + res.status;
+      }
+
+      function explainStatus(res, message) {
+        if (res.status === 401) return '令牌无效或已过期（401）：' + message;
+        if (res.status === 403) return '权限不足或触发限流（403）：' + message;
+        if (res.status === 404) return '找不到仓库或路径（404）：请检查 owner / repo / 路径，以及令牌是否已授权该仓库';
+        if (res.status === 409) return '版本冲突（409）：远端已被修改，请先「读取最新」';
+        if (res.status === 422) return '请求被拒绝（422）：' + message;
+        return '请求失败（' + res.status + '）：' + message;
+      }
+
+      async function fetchRemoteFile() {
+        const url = contentsUrl() + '?ref=' + encodeURIComponent(state.config.branch) + '&t=' + Date.now();
+        let res = await fetch(url, { headers: apiHeaders(), cache: 'no-store' });
+
+        // A stale remembered token must not break reading a public repository.
+        if (res.status === 401 && state.token) {
+          const anonymous = apiHeaders();
+          delete anonymous.Authorization;
+          res = await fetch(url, { headers: anonymous, cache: 'no-store' });
+        }
+
+        if (res.status === 404) return null;
+        if (!res.ok) throw new Error(explainStatus(res, await readError(res)));
+
+        const data = await res.json();
+        return {
+          sha: data.sha,
+          text: base64ToUtf8(data.content || '')
+        };
+      }
+
+      async function verifyToken() {
+        if (!state.token) {
+          log('请先填写 GitHub Personal Access Token', 'err');
+          return;
+        }
+        setBusy(true);
+        try {
+          const res = await fetch('https://api.github.com/user', { headers: apiHeaders(), cache: 'no-store' });
+          if (!res.ok) {
+            log(explainStatus(res, await readError(res)), 'err');
+            return;
+          }
+          const user = await res.json();
+          log('令牌有效，登录身份：' + user.login, 'ok');
+        } catch (error) {
+          log('连接 GitHub 失败：' + error.message, 'err');
+        } finally {
+          setBusy(false);
+        }
+      }
+
+      async function pullFromGitHub(options) {
+        const auto = !!(options && options.auto);
+        if (!requireRepo()) return false;
+        if (!auto && state.dirty && !window.confirm('当前有未提交的修改，读取最新会覆盖它们。继续？')) return false;
+
+        setBusy(true);
+        if (!auto) setStatus('正在读取 GitHub 上的 ' + state.config.dataPath + ' …');
+        try {
+          const remote = await fetchRemoteFile();
+          if (!remote) {
+            log('远端还没有 ' + state.config.dataPath + '，提交时会自动创建', 'warn');
+            state.remoteSha = null;
+            state.baselineText = null;
+            state.baselineSource = 'github';
+            setStatus('远端暂无数据文件，当前为本地内置内容。');
+            return 'missing';
+          }
+
+          applyDocument(remote.text);
+          state.remoteSha = remote.sha;
+          state.baselineText = remote.text;
+          state.baselineSource = 'github';
+          state.dirty = false;
+          log((auto ? '已自动同步 GitHub 最新内容（' : '已读取远端最新内容（') + String(remote.sha).slice(0, 7) + '）', 'ok');
+          setStatus('已同步 GitHub：' + state.config.owner + '/' + state.config.repo + ' · ' + state.config.branch + ' · ' + state.config.dataPath);
+          return true;
+        } catch (error) {
+          if (auto) {
+            log('自动同步失败（' + error.message + '），已回退到站内 ' + state.config.dataPath, 'warn');
+            setStatus('无法自动同步 GitHub，当前显示站内 ' + state.config.dataPath + '；可点击「读取最新」重试。');
+          } else {
+            log('读取失败：' + error.message, 'err');
+            setStatus('读取失败，仍显示本地内置内容。');
+          }
+          return false;
+        } finally {
+          setBusy(false);
+        }
+      }
+
+      async function loadLocalFallback() {
+        try {
+          const res = await fetch(resolve(state.config.localPreviewPath || DEFAULT_CONFIG.localPreviewPath), { cache: 'no-cache' });
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const text = await res.text();
+          applyDocument(text);
+          state.baselineText = text;
+          state.baselineSource = 'local';
+          state.remoteSha = null;
+          log('已载入站内 ' + DEFAULT_CONFIG.dataPath + ' 作为当前内容', 'ok');
+        } catch (error) {
+          state.mirrors = [newMirror()];
+          state.searchEngines = [newEngine()];
+          syncFormFromState();
+          renderMirrors();
+          renderEngines();
+          log('无法载入站内数据（' + error.message + '），已从空白开始', 'warn');
+        }
+      }
+
+      async function saveToGitHub() {
+        if (state.busy) return;
+        if (!requireRepo() || !requireToken()) return;
+
+        const text = buildDocumentText();
+        let doc;
+        try {
+          doc = JSON.parse(text);
+        } catch (error) {
+          log('生成的数据不是合法 JSON，已取消提交', 'err');
+          return;
+        }
+
+        if (!doc.mirrors.length) {
+          log('至少保留一条镜像链接', 'err');
+          return;
+        }
+        if (!doc.mirrors.some(function (m) { return m.enabled; })) {
+          log('至少启用一条镜像链接', 'err');
+          return;
+        }
+
+        setBusy(true);
+        setStatus('正在提交到 GitHub …');
+
+        try {
+          const remote = await fetchRemoteFile();
+
+          if (remote && remote.text === text) {
+            log('内容与远端完全一致，无需提交', 'ok');
+            state.remoteSha = remote.sha;
+            state.baselineText = remote.text;
+            state.dirty = false;
+            setStatus('内容已是最新。');
+            return;
+          }
+
+          if (remote && state.baselineText !== null && remote.text !== state.baselineText && !els.force.checked) {
+            state.remoteSha = remote.sha;
+            log('远端已被修改，已取消提交，避免覆盖。请先「读取最新」，或勾选「强制覆盖远端」后重试', 'err');
+            setStatus('检测到远端变更，提交已停止。');
+            return;
+          }
+
+          const message = (els.commitMessage.value || '').trim()
+            || 'chore(mirrors): update mirror list';
+
+          const body = {
+            message: message,
+            content: utf8ToBase64(text),
+            branch: state.config.branch
+          };
+          if (remote && remote.sha) body.sha = remote.sha;
+
+          const res = await fetch(contentsUrl(), {
+            method: 'PUT',
+            headers: Object.assign({ 'Content-Type': 'application/json' }, apiHeaders()),
+            body: JSON.stringify(body)
+          });
+
+          if (!res.ok) {
+            log(explainStatus(res, await readError(res)), 'err');
+            setStatus('提交失败。');
+            return;
+          }
+
+          const result = await res.json();
+          state.remoteSha = result.content ? result.content.sha : null;
+          state.baselineText = text;
+          state.baselineSource = 'github';
+          state.dirty = false;
+
+          log('提交成功：' + message, 'ok');
+          if (result.commit && result.commit.html_url) log(result.commit.html_url, 'ok');
+          setStatus('已提交，GitHub Pages 通常 1 分钟内生效。');
+        } catch (error) {
+          log('提交失败：' + error.message, 'err');
+          setStatus('提交失败。');
+        } finally {
+          setBusy(false);
+        }
+      }
+
+      /* ========================================================
+       * Theme toggle (shares the main site preference)
+       * ======================================================== */
+      function initTheme() {
+        els.themeToggle.addEventListener('click', function () {
+          const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+          document.documentElement.setAttribute('data-theme', next);
+          try { localStorage.setItem('bxks_theme', next); } catch (e) { /* ignore */ }
+        });
+      }
+
+      /* ========================================================
+       * Boot
+       * ======================================================== */
+      async function loadConfig() {
+        try {
+          const res = await fetch(resolve('config.json'), { cache: 'no-cache' });
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const cfg = await res.json();
+          state.config = Object.assign({}, DEFAULT_CONFIG, state.config, cfg);
+        } catch (error) {
+          log('未读取到 dtms/config.json，使用默认仓库设置', 'warn');
+        }
+      }
+
+      async function boot() {
+        window.addEventListener('error', function (event) {
+          log('脚本错误：' + (event.message || event.error), 'err');
+        });
+        window.addEventListener('unhandledrejection', function (event) {
+          const reason = event.reason;
+          log('未处理的异常：' + ((reason && reason.message) || reason), 'err');
+        });
+
+        loadLocal();
+        await loadConfig();
+        syncFormFromState();
+        bindCredentialInputs();
+        bindRowEvents();
+        initTheme();
+
+        els.verify.addEventListener('click', verifyToken);
+        els.pull.addEventListener('click', function () { pullFromGitHub(); });
+        els.save.addEventListener('click', saveToGitHub);
+
+        log('管理页已就绪，域名：' + (window.location.host || window.location.protocol));
+
+        // Show something immediately, then always try to pull the live file so the
+        // page opens on the latest content even without a token (public repos).
+        try {
+          await loadLocalFallback();
+        } catch (error) {
+          log('载入站内数据失败：' + error.message, 'err');
+        }
+
+        setStatus('正在同步 GitHub 上的 ' + state.config.dataPath + ' …');
+        state.dirty = false;
+        const synced = await pullFromGitHub({ auto: true });
+        if (synced === false) {
+          setStatus('当前显示站内 ' + state.config.dataPath + '（未同步 GitHub）。');
+        }
+      }
+
+      boot();
+    })();
+  </script>
+</body>
+</html>

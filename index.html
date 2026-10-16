@@ -1635,27 +1635,38 @@
         { title: '生命3.0', author: '迈克斯·泰格马克' }
       ];
 
-      // Search engine configurations (distributed evenly across active mirrors, 25% each):
-      const SEARCH_ENGINES = [
-        { domain: 'https://libb.la', weight: 0.25 },
-        { domain: 'https://z-library.website', weight: 0.25 },
-        { domain: 'https://zh.swe101.ru', weight: 0.25 },
-        { domain: 'https://zh.101isfj.ru', weight: 0.25 }
+      // Search engine configurations (distributed evenly across active mirrors, 25% each).
+      // Replaced at runtime by data/mirrors.json (edited through the /dtms CMS).
+      let SEARCH_ENGINES = [
+        { domain: 'https://libb.la', weight: 25, enabled: true },
+        { domain: 'https://z-library.website', weight: 25, enabled: true },
+        { domain: 'https://zh.swe101.ru', weight: 25, enabled: true },
+        { domain: 'https://zh.101isfj.ru', weight: 25, enabled: true }
       ];
 
       /**
-       * Pick a search engine based on the specified probability distribution
+       * Pick a search engine based on the specified probability distribution.
+       * Weights are relative and normalized on the fly, so any positive scale works.
        */
       function selectSearchEngine() {
-        const rand = Math.random();
+        const active = SEARCH_ENGINES.filter(
+          (engine) => engine && engine.domain && engine.enabled !== false && Number(engine.weight) > 0
+        );
+        const pool = active.length ? active : SEARCH_ENGINES.filter((engine) => engine && engine.domain);
+        if (!pool.length) return '';
+
+        const total = pool.reduce((sum, engine) => sum + Number(engine.weight), 0);
+        if (!(total > 0)) return pool[0].domain;
+
+        const rand = Math.random() * total;
         let cumulative = 0;
-        for (const engine of SEARCH_ENGINES) {
-          cumulative += engine.weight;
+        for (const engine of pool) {
+          cumulative += Number(engine.weight);
           if (rand < cumulative) {
             return engine.domain;
           }
         }
-        return SEARCH_ENGINES[0].domain;
+        return pool[pool.length - 1].domain;
       }
 
       /**
@@ -1899,6 +1910,7 @@
         if (!finalQuery) return;
 
         const targetEngine = selectSearchEngine();
+        if (!targetEngine) return;
         const searchUrl = buildSearchUrl(targetEngine, finalQuery);
 
         // Force open in new tab via native link trigger
@@ -2301,14 +2313,105 @@
           }
         });
 
-        // Close on clicking any mirror link
-        const links = wrapper.querySelectorAll('.mirror-link');
-        links.forEach(link => {
-          link.addEventListener('click', () => {
+        // Close on clicking any mirror link (delegated: the list is re-rendered from mirrors.json)
+        wrapper.addEventListener('click', (e) => {
+          if (e.target.closest('.mirror-link')) {
             closeMenu();
-          });
+          }
         });
       })();
+
+      /* 
+       * ========================================================
+       * Remote Mirror Data (data/mirrors.json, edited via /dtms CMS)
+       * The static markup above stays as an offline/first-paint fallback:
+       * it is only replaced once the JSON file loads successfully.
+       * ========================================================
+       */
+      const MIRROR_DATA_URL = 'data/mirrors.json';
+
+      function normalizeMirrorUrl(url) {
+        return String(url || '').trim().replace(/\/+$/, '');
+      }
+
+      function renderMirrorList(data) {
+        const listEl = document.querySelector('#mirror-dropdown .mirror-list');
+        const headerEl = document.querySelector('#mirror-dropdown .mirror-header-title');
+        const tipEl = document.querySelector('#mirror-dropdown .mirror-header-tip');
+        if (!listEl) return;
+
+        const dropdown = data && data.dropdown ? data.dropdown : {};
+        if (headerEl && dropdown.title) headerEl.textContent = dropdown.title;
+        if (tipEl && dropdown.tip) tipEl.textContent = dropdown.tip;
+
+        const items = (Array.isArray(data && data.mirrors) ? data.mirrors : [])
+          .filter((item) => item && item.url && item.enabled !== false);
+        if (!items.length) return;
+
+        const frag = document.createDocumentFragment();
+        for (const item of items) {
+          const href = String(item.url).trim();
+          const display = String(item.display || '').trim() || normalizeMirrorUrl(href);
+          const label = String(item.label || '').trim();
+          if (!href) continue;
+
+          const li = document.createElement('li');
+          li.setAttribute('role', 'none');
+
+          const a = document.createElement('a');
+          a.href = href;
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          a.className = 'mirror-link';
+          a.setAttribute('role', 'menuitem');
+
+          const domain = document.createElement('span');
+          domain.className = 'mirror-domain';
+          domain.textContent = display;
+          a.appendChild(domain);
+
+          if (label) {
+            const rec = document.createElement('span');
+            rec.className = 'mirror-rec-text';
+            rec.textContent = label;
+            a.appendChild(rec);
+          }
+
+          li.appendChild(a);
+          frag.appendChild(li);
+        }
+
+        if (frag.childNodes.length) {
+          listEl.replaceChildren(frag);
+        }
+      }
+
+      function applySearchEngineData(engines) {
+        const configured = (Array.isArray(engines) ? engines : [])
+          .filter((engine) => engine && engine.domain)
+          .map((engine) => ({
+            domain: normalizeMirrorUrl(engine.domain),
+            weight: Number(engine.weight),
+            enabled: engine.enabled !== false
+          }))
+          .filter((engine) => engine.domain);
+
+        // Nothing usable in the JSON: keep the built-in list so search never dies.
+        if (!configured.length) return;
+
+        const usable = configured.filter((engine) => engine.enabled && engine.weight > 0);
+        // If every engine is disabled or zero-weighted, fall back to the configured
+        // order rather than resurrecting domains the operator removed from the file.
+        SEARCH_ENGINES = usable.length ? usable : configured;
+      }
+
+      fetch(MIRROR_DATA_URL, { cache: 'no-cache' })
+        .then((res) => (res.ok ? res.json() : Promise.reject(new Error('HTTP ' + res.status))))
+        .then((data) => {
+          renderMirrorList(data);
+          applySearchEngineData(data && data.searchEngines);
+        })
+        .catch(() => { /* Keep the built-in list when the JSON is missing or malformed. */ });
 
       // First-time User Hint Logic
       (function initFirstTimeHint() {
