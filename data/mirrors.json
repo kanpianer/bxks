@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-16T18:08:47Z",
+  "updatedAt": "2026-10-16T18:51:32Z",
   "dropdown": {
     "title": "Z-Library 镜像列表",
     "tip": "点击访问"
@@ -8,11 +8,6 @@
   "mirrors": [
     {
       "url": "https://libb.la",
-      "label": "没墙",
-      "enabled": true
-    },
-    {
-      "url": "https://z-library.website",
       "label": "没墙",
       "enabled": true
     },
@@ -27,23 +22,18 @@
       "enabled": true
     },
     {
-      "url": "https://1lib.sk",
-      "label": "",
-      "enabled": true
-    },
-    {
-      "url": "https://z-lib.sk/",
-      "label": "",
+      "url": "https://z-lib.sk",
+      "label": "需代理",
       "enabled": true
     },
     {
       "url": "https://z-lib.by",
-      "label": "",
+      "label": "需代理",
       "enabled": true
     },
     {
       "url": "https://z-lib.gd",
-      "label": "",
+      "label": "需代理",
       "enabled": true
     },
     {
@@ -65,12 +55,7 @@
   "searchEngines": [
     {
       "domain": "https://libb.la",
-      "weight": 25,
-      "enabled": true
-    },
-    {
-      "domain": "https://z-library.website",
-      "weight": 25,
+      "weight": 50,
       "enabled": true
     },
     {
