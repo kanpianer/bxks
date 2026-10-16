@@ -2,7 +2,7 @@
 
 > **Z-Library** — Your gateway to knowledge and culture. Accessible for everyone.
 > 
-> 在线访问: [www.bxks.uk](https://www.bxks.uk)
+> 在线访问: [bxks.pages.dev](https://bxks.pages.dev) ｜ 镜像: [bxks.sld.tw](https://bxks.sld.tw)
 
 ---
 
@@ -29,7 +29,7 @@
 
 ## 内容管理（CMS）
 
-管理地址为 **`网站域名/dtms`**（例如 <https://www.bxks.uk/dtms>）。页面为纯静态，不依赖服务器，
+管理地址为 **`网站域名/dtms`**（例如 <https://bxks.pages.dev/dtms>）。页面为纯静态，不依赖服务器，
 任何镜像域名都可直接打开。
 
 ### 可维护的内容
