@@ -372,7 +372,61 @@
   </div>
 
   <main class="wrap">
-    <!-- 1. Repository & token -->
+    <!-- 1. Mirror list -->
+    <section class="panel">
+      <h2>镜像列表</h2>
+      <p class="desc">首页标题下拉框中的全部条目，顺序即显示顺序；关闭「启用」即从列表隐藏（不会删除）。删除按钮移除该条，刷新页面可恢复线上内容。</p>
+      <div class="rows" id="mirror-rows"></div>
+      <div class="actions-bar">
+        <button id="btn-add-mirror" class="btn btn-ghost" type="button">＋ 添加镜像</button>
+        <span class="hint" id="mirror-count" style="margin: 0;"></span>
+      </div>
+    </section>
+
+    <!-- 2. Search routing -->
+    <section class="panel">
+      <h2>搜索分发权重</h2>
+      <p class="desc">当前激活的搜索引擎，首页搜索时按权重随机分发；权重自动归一化，无需合计为 100，全部停用时按列表顺序兜底。</p>
+      <div class="rows" id="engine-rows"></div>
+      <div class="actions-bar">
+        <button id="btn-add-engine" class="btn btn-ghost" type="button">＋ 添加搜索引擎</button>
+        <button id="btn-fill-engines" class="btn btn-ghost" type="button">补全未分发的镜像域名</button>
+        <span class="hint" id="engine-total" style="margin: 0;"></span>
+      </div>
+    </section>
+
+    <!-- 3. Dropdown header -->
+    <section class="panel">
+      <h2>下拉框标题</h2>
+      <p class="desc">显示在镜像列表顶部的标题与右侧提示文字。</p>
+      <div class="fields">
+        <label class="field"><span>标题</span><input id="dropdown-title" type="text" placeholder="Z-Library 镜像列表" /></label>
+        <label class="field"><span>右侧提示</span><input id="dropdown-tip" type="text" placeholder="点击访问" /></label>
+      </div>
+    </section>
+
+    <!-- 4. Commit -->
+    <section class="panel">
+      <h2>提交更新</h2>
+      <p class="desc">提交前会自动检查远端是否有新改动，避免覆盖别人的修改。</p>
+      <div class="field" style="margin-bottom: 12px;">
+        <span>提交说明 commit message</span>
+        <input id="commit-message" type="text" spellcheck="false" placeholder="chore(mirrors): update mirror list" />
+      </div>
+      <div class="actions-bar">
+        <button id="btn-save" class="btn" type="button">提交更新</button>
+        <label class="check"><input id="force" type="checkbox" /> 强制覆盖远端</label>
+      </div>
+      <p class="hint" id="status-line">正在同步 GitHub 最新内容 …</p>
+    </section>
+
+    <!-- 5. Log -->
+    <section class="panel">
+      <h2>日志</h2>
+      <pre id="log"></pre>
+    </section>
+
+    <!-- 6. Repository & token -->
     <section class="panel">
       <h2>仓库与令牌</h2>
       <p class="desc">
@@ -402,60 +456,6 @@
         建议使用 <strong>Fine-grained token</strong>，仅勾选本仓库的 <strong>Contents: Read and write</strong>，并设置较短有效期。
         令牌只保存在本机浏览器（localStorage），不会写入仓库。
       </p>
-    </section>
-
-    <!-- 2. Mirror list -->
-    <section class="panel">
-      <h2>镜像列表</h2>
-      <p class="desc">首页标题下拉框中的全部条目，顺序即显示顺序；关闭「启用」即从列表隐藏（不会删除）。删除按钮移除该条，刷新页面可恢复线上内容。</p>
-      <div class="rows" id="mirror-rows"></div>
-      <div class="actions-bar">
-        <button id="btn-add-mirror" class="btn btn-ghost" type="button">＋ 添加镜像</button>
-        <span class="hint" id="mirror-count" style="margin: 0;"></span>
-      </div>
-    </section>
-
-    <!-- 3. Search routing -->
-    <section class="panel">
-      <h2>搜索分发权重</h2>
-      <p class="desc">当前激活的搜索引擎，首页搜索时按权重随机分发；权重自动归一化，无需合计为 100，全部停用时按列表顺序兜底。</p>
-      <div class="rows" id="engine-rows"></div>
-      <div class="actions-bar">
-        <button id="btn-add-engine" class="btn btn-ghost" type="button">＋ 添加搜索引擎</button>
-        <button id="btn-fill-engines" class="btn btn-ghost" type="button">补全未分发的镜像域名</button>
-        <span class="hint" id="engine-total" style="margin: 0;"></span>
-      </div>
-    </section>
-
-    <!-- 4. Dropdown header -->
-    <section class="panel">
-      <h2>下拉框标题</h2>
-      <p class="desc">显示在镜像列表顶部的标题与右侧提示文字。</p>
-      <div class="fields">
-        <label class="field"><span>标题</span><input id="dropdown-title" type="text" placeholder="Z-Library 镜像列表" /></label>
-        <label class="field"><span>右侧提示</span><input id="dropdown-tip" type="text" placeholder="点击访问" /></label>
-      </div>
-    </section>
-
-    <!-- 5. Commit -->
-    <section class="panel">
-      <h2>提交更新</h2>
-      <p class="desc">提交前会自动检查远端是否有新改动，避免覆盖别人的修改。</p>
-      <div class="field" style="margin-bottom: 12px;">
-        <span>提交说明 commit message</span>
-        <input id="commit-message" type="text" spellcheck="false" placeholder="chore(mirrors): update mirror list" />
-      </div>
-      <div class="actions-bar">
-        <button id="btn-save" class="btn" type="button">提交更新</button>
-        <label class="check"><input id="force" type="checkbox" /> 强制覆盖远端</label>
-      </div>
-      <p class="hint" id="status-line">正在同步 GitHub 最新内容 …</p>
-    </section>
-
-    <!-- 6. Log -->
-    <section class="panel">
-      <h2>日志</h2>
-      <pre id="log"></pre>
     </section>
 
     <datalist id="label-presets">
