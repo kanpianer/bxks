@@ -1,8 +1,8 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-16T18:51:32Z",
+  "updatedAt": "2026-10-24T13:54:49Z",
   "dropdown": {
-    "title": "Z-Library 镜像列表",
+    "title": "影子图书馆网址列表",
     "tip": "点击访问"
   },
   "mirrors": [
@@ -19,15 +19,10 @@
     {
       "url": "https://zh.101isfj.ru",
       "label": "没墙",
-      "enabled": true
+      "enabled": false
     },
     {
       "url": "https://z-lib.sk",
-      "label": "需代理",
-      "enabled": true
-    },
-    {
-      "url": "https://z-lib.by",
       "label": "需代理",
       "enabled": true
     },
@@ -38,17 +33,37 @@
     },
     {
       "url": "https://library-access.sk",
-      "label": "官方防丢渠道",
+      "label": "Z-lib官方防丢渠道",
+      "enabled": true
+    },
+    {
+      "url": "https://welib.org",
+      "label": "WeLib",
+      "enabled": true
+    },
+    {
+      "url": "https://bookracy.com/",
+      "label": "Bookracy",
+      "enabled": true
+    },
+    {
+      "url": "https://libgen.li",
+      "label": "Library Genesis",
+      "enabled": true
+    },
+    {
+      "url": "https://annas-archive.pk/",
+      "label": "Anna’s Archive",
       "enabled": true
     },
     {
       "url": "https://bxks.sld.tw",
-      "label": "本站镜像",
+      "label": "本站网址",
       "enabled": true
     },
     {
       "url": "https://bxks.pages.dev",
-      "label": "本站镜像",
+      "label": "本站网址",
       "enabled": true
     }
   ],
