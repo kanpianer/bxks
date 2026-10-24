@@ -1,6 +1,6 @@
-# 不想看书 (Z-Library Gateway)
+# 不想看书 (Shadow Libraries Gateway)
 
-> **Z-Library** — Your gateway to knowledge and culture. Accessible for everyone.
+> **不想看书** — 聚合主流「影子图书馆」，你的一站式找书平台。
 > 
 > 在线访问: [bxks.pages.dev](https://bxks.pages.dev) ｜ 镜像: [bxks.sld.tw](https://bxks.sld.tw)
 
@@ -17,8 +17,9 @@
   - 精确还原精装书 3D 结构（圆弧质感书脊、压纹折痕、微米级交叉网纹水印、真实纸张厚度切面）。
   - 在固定安全范围内轻柔呼吸悬浮（float）与底部透视阴影同步伸缩。
   - 与搜索框书名毫秒级同步切换，支持 3D 悬浮与拖拽互动。
-- **多搜索引擎快速切换与智能分发**:
-  - 搜索框前方图标支持悬停或聚焦时动态展示当前引擎图标，点击可下拉选择不同搜索引擎（Anna’s Archive、Libgen、Bookracy、WeLib、Z-Library 等）。
+- **多搜索引擎快速切换、聚合搜索与智能分发**:
+  - 默认采用 Z-Library 作为主搜索引擎，搜索框前方图标支持悬停或聚焦时动态展示当前引擎图标，点击可下拉选择不同搜索引擎（Z-Library、Anna’s Archive、Libgen、Bookracy、WeLib 等）。
+  - 下拉列表最下方提供「**聚合搜索**」选项，选中后一键搜索将同时在多个新标签页弹出所有搜索引擎的检索结果。
   - 下拉列表展示各网站专属图标与名称，自动记忆用户偏好。
   - 同一网站名称下的多个网址按权重独立归一化分发，各镜像按比重随机分配流量。
   - 智能匹配不同引擎的标准检索协议（如 Anna's Archive `/search?q=`、Libgen `/index.php?req=`、Bookracy `/?q=`、WeLib `/search?q=`、Z-Library `/s/`）。

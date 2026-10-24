@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="dark light" />
-  <title>不想看书 - Your gateway to knowledge and culture</title>
+  <title>不想看书 - 聚合主流「影子图书馆」，你的一站式找书平台</title>
 
   <!-- Favicon -->
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -768,6 +768,45 @@
 
     .engine-dropdown-item.is-selected .engine-item-check {
       opacity: 1;
+    }
+
+    .engine-dropdown-divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.08);
+      margin: 4px 2px;
+      list-style: none;
+    }
+
+    [data-theme="light"] .engine-dropdown-divider {
+      background: rgba(0, 0, 0, 0.07);
+    }
+
+    .search-toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--search-bg);
+      border: 1px solid var(--search-border);
+      color: var(--fg);
+      font-size: 0.82rem;
+      padding: 10px 18px;
+      border-radius: 9999px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      z-index: 1000;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .search-toast.is-visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+      pointer-events: auto;
     }
 
     /* Input & Upward-Cycling Ticker */
@@ -1657,9 +1696,9 @@
         </div>
       </div>
 
-      <p class="brand-subtitle" aria-label="Your gateway to knowledge and culture. Accessible for everyone.">
-        <span class="brand-subtitle-line">Your gateway to knowledge and culture</span>
-        <span class="brand-subtitle-line">Accessible for everyone</span>
+      <p class="brand-subtitle" aria-label="聚合主流「影子图书馆」，你的一站式找书平台。">
+        聚合主流「影子图书馆」，你的一站式找书平台。
+      </p>
     </header>
 
     <!-- Search Section -->
@@ -1682,7 +1721,7 @@
               <line x1="21" y1="21" x2="16.5" y2="16.5"></line>
             </svg>
             <!-- Current search engine icon (revealed on hover / focus / open) -->
-            <img class="engine-active-icon" id="engine-active-icon" src="assets/images/engine-annas.png" alt="当前搜索引擎" aria-hidden="true" />
+            <img class="engine-active-icon" id="engine-active-icon" src="assets/images/engine-zlib.svg" alt="当前搜索引擎" aria-hidden="true" />
           </button>
 
           <!-- Dropdown menu showing available engines -->
@@ -1842,6 +1881,11 @@
 
       // Search Engine Icons
       const ENGINE_ICON_MAP = {
+        '聚合搜索': 'assets/images/engine-all.svg',
+        'all': 'assets/images/engine-all.svg',
+        'z-library': 'assets/images/engine-zlib.svg',
+        'zlibrary': 'assets/images/engine-zlib.svg',
+        'z-lib': 'assets/images/engine-zlib.svg',
         'anna’s archive': 'assets/images/engine-annas.png',
         'annas archive': 'assets/images/engine-annas.png',
         'annas-archive': 'assets/images/engine-annas.png',
@@ -1849,10 +1893,7 @@
         'libgen': 'assets/images/engine-libgen.ico',
         'library genesis': 'assets/images/engine-libgen.ico',
         'bookracy': 'assets/images/engine-bookracy.png',
-        'welib': 'assets/images/engine-welib.png',
-        'z-library': 'assets/images/engine-zlib.svg',
-        'zlibrary': 'assets/images/engine-zlib.svg',
-        'z-lib': 'assets/images/engine-zlib.svg'
+        'welib': 'assets/images/engine-welib.png'
       };
 
       function resolveEngineIcon(name, domain) {
@@ -1865,11 +1906,14 @@
         for (const [k, v] of Object.entries(ENGINE_ICON_MAP)) {
           if (d.includes(k)) return v;
         }
-        return 'assets/images/engine-annas.png';
+        return 'assets/images/engine-zlib.svg';
       }
 
-      // Default built-in search engines configuration
+      // Default built-in search engines configuration (Z-Library as default)
       let SEARCH_ENGINE_CONFIGS = [
+        { name: 'Z-Library', domain: 'https://libb.la', weight: 50, enabled: true },
+        { name: 'Z-Library', domain: 'https://zh.swe101.ru', weight: 25, enabled: true },
+        { name: 'Z-Library', domain: 'https://zh.101isfj.ru', weight: 25, enabled: false },
         { name: 'Anna’s Archive', domain: 'https://annas-archive.pk', weight: 34, enabled: true },
         { name: 'Anna’s Archive', domain: 'https://annas-archive.gl', weight: 33, enabled: true },
         { name: 'Anna’s Archive', domain: 'https://annas-archive.gd', weight: 33, enabled: true },
@@ -1877,17 +1921,14 @@
         { name: 'Libgen', domain: 'https://libgen.la', weight: 30, enabled: true },
         { name: 'Libgen', domain: 'https://libgen.vg', weight: 30, enabled: true },
         { name: 'Bookracy', domain: 'https://bookracy.com', weight: 100, enabled: true },
-        { name: 'WeLib', domain: 'https://welib.org', weight: 100, enabled: true },
-        { name: 'Z-Library', domain: 'https://libb.la', weight: 50, enabled: true },
-        { name: 'Z-Library', domain: 'https://zh.swe101.ru', weight: 25, enabled: true },
-        { name: 'Z-Library', domain: 'https://zh.101isfj.ru', weight: 25, enabled: false }
+        { name: 'WeLib', domain: 'https://welib.org', weight: 100, enabled: true }
       ];
 
       let currentEngineName = (function() {
         try {
-          return localStorage.getItem('bxks_active_engine') || 'Anna’s Archive';
+          return localStorage.getItem('bxks_active_engine') || 'Z-Library';
         } catch (e) {
-          return 'Anna’s Archive';
+          return 'Z-Library';
         }
       })();
 
@@ -1971,21 +2012,33 @@
         const engines = getDistinctEngines();
         if (!engines.length) return;
 
-        let active = engines.find((e) => e.name.toLowerCase() === currentEngineName.toLowerCase());
-        if (!active) {
-          active = engines[0];
-          currentEngineName = active.name;
-        }
-
         const activeIconEl = document.getElementById('engine-active-icon');
         const engineBtn = document.getElementById('search-engine-btn');
-        if (activeIconEl) {
-          activeIconEl.src = active.icon;
-          activeIconEl.alt = active.name;
-        }
-        if (engineBtn) {
-          engineBtn.setAttribute('title', '当前搜索引擎：' + active.name + '（点击切换）');
-          engineBtn.setAttribute('aria-label', '当前搜索引擎：' + active.name + '，点击切换');
+
+        if (currentEngineName === '聚合搜索') {
+          if (activeIconEl) {
+            activeIconEl.src = 'assets/images/engine-all.svg';
+            activeIconEl.alt = '聚合搜索';
+          }
+          if (engineBtn) {
+            engineBtn.setAttribute('title', '当前搜索引擎：聚合搜索（同时检索所有引擎）');
+            engineBtn.setAttribute('aria-label', '当前搜索引擎：聚合搜索，点击切换');
+          }
+        } else {
+          let active = engines.find((e) => e.name.toLowerCase() === currentEngineName.toLowerCase());
+          if (!active) {
+            active = engines[0];
+            currentEngineName = active.name;
+          }
+
+          if (activeIconEl) {
+            activeIconEl.src = active.icon;
+            activeIconEl.alt = active.name;
+          }
+          if (engineBtn) {
+            engineBtn.setAttribute('title', '当前搜索引擎：' + active.name + '（点击切换）');
+            engineBtn.setAttribute('aria-label', '当前搜索引擎：' + active.name + '，点击切换');
+          }
         }
 
         const items = document.querySelectorAll('.engine-dropdown-item');
@@ -2054,6 +2107,57 @@
 
           frag.appendChild(li);
         });
+
+        // Add separator and "聚合搜索" option at the bottom
+        const divider = document.createElement('li');
+        divider.className = 'engine-dropdown-divider';
+        divider.setAttribute('role', 'separator');
+        frag.appendChild(divider);
+
+        const allLi = document.createElement('li');
+        allLi.className = 'engine-dropdown-item engine-item-all';
+        allLi.setAttribute('role', 'option');
+        allLi.dataset.engineName = '聚合搜索';
+
+        const isAllSelected = currentEngineName === '聚合搜索';
+        if (isAllSelected) allLi.classList.add('is-selected');
+        allLi.setAttribute('aria-selected', isAllSelected ? 'true' : 'false');
+
+        const allImg = document.createElement('img');
+        allImg.className = 'engine-item-icon';
+        allImg.src = 'assets/images/engine-all.svg';
+        allImg.alt = '';
+        allImg.setAttribute('aria-hidden', 'true');
+
+        const allNameSpan = document.createElement('span');
+        allNameSpan.className = 'engine-item-name';
+        allNameSpan.textContent = '聚合搜索';
+
+        const allCheckSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        allCheckSvg.setAttribute('class', 'engine-item-check');
+        allCheckSvg.setAttribute('viewBox', '0 0 24 24');
+        allCheckSvg.setAttribute('fill', 'none');
+        allCheckSvg.setAttribute('stroke', 'currentColor');
+        allCheckSvg.setAttribute('stroke-width', '2.5');
+        allCheckSvg.setAttribute('stroke-linecap', 'round');
+        allCheckSvg.setAttribute('stroke-linejoin', 'round');
+        const allPolyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+        allPolyline.setAttribute('points', '20 6 9 17 4 12');
+        allCheckSvg.appendChild(allPolyline);
+
+        allLi.appendChild(allImg);
+        allLi.appendChild(allNameSpan);
+        allLi.appendChild(allCheckSvg);
+
+        allLi.addEventListener('click', (e) => {
+          e.stopPropagation();
+          currentEngineName = '聚合搜索';
+          updateActiveEngineUI();
+          closeEngineDropdown();
+          if (searchInput) searchInput.focus();
+        });
+
+        frag.appendChild(allLi);
 
         listEl.replaceChildren(frag);
       }
@@ -2317,6 +2421,22 @@
 
       startTicker();
 
+      function showSearchToast(message, duration = 3800) {
+        let toast = document.getElementById('search-toast');
+        if (!toast) {
+          toast = document.createElement('div');
+          toast.id = 'search-toast';
+          toast.className = 'search-toast';
+          document.body.appendChild(toast);
+        }
+        toast.textContent = message;
+        toast.classList.add('is-visible');
+        clearTimeout(toast._timer);
+        toast._timer = setTimeout(() => {
+          toast.classList.remove('is-visible');
+        }, duration);
+      }
+
       /**
        * Reliable New Tab Navigation:
        * Creates a temporary <a> tag with target="_blank" and rel="noopener noreferrer"
@@ -2332,6 +2452,46 @@
         const finalQuery = rawQuery || (currentBook ? currentBook.title : '');
 
         if (!finalQuery) return;
+
+        // If "聚合搜索" is selected: simultaneously open all search engines in new tabs
+        if (currentEngineName === '聚合搜索') {
+          const engines = getDistinctEngines();
+          let blockedCount = 0;
+
+          engines.forEach((eng) => {
+            const selection = selectEngineMirror(eng.name);
+            if (!selection || !selection.domain) return;
+            const searchUrl = buildSearchUrl(selection.name || eng.name, selection.domain, finalQuery);
+
+            try {
+              const win = window.open(searchUrl, '_blank', 'noopener,noreferrer');
+              if (!win) {
+                blockedCount++;
+                const link = document.createElement('a');
+                link.href = searchUrl;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              }
+            } catch (err) {
+              blockedCount++;
+              const link = document.createElement('a');
+              link.href = searchUrl;
+              link.target = '_blank';
+              link.rel = 'noopener noreferrer';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }
+          });
+
+          if (blockedCount > 0) {
+            showSearchToast('已发起聚合搜索，若部分标签页未打开，请在浏览器地址栏允许弹出窗口');
+          }
+          return;
+        }
 
         const selection = selectEngineMirror(currentEngineName);
         if (!selection || !selection.domain) return;
