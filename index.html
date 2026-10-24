@@ -519,6 +519,8 @@
       margin-inline: auto;
       margin-bottom: clamp(36px, 6vh, 56px);
       transition: width 0.3s ease;
+      position: relative;
+      z-index: 40;
     }
 
     /* Mobile: Full-width responsive layout & swap positions of book and search */
@@ -568,13 +570,12 @@
 
     /* Magnifying Glass & Search Engine Selector */
     .search-engine-selector {
-      position: relative;
+      position: static;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
       margin-right: 8px;
-      z-index: 25;
     }
 
     .search-engine-btn {
@@ -649,12 +650,17 @@
       pointer-events: auto;
     }
 
-    /* Engine Dropdown Menu */
+    /* Engine Dropdown Menu (Desktop: Pop down below search box) */
     .engine-dropdown {
       position: absolute;
       top: calc(100% + 12px);
-      left: -6px;
+      bottom: auto;
+      left: 5px;
       min-width: 196px;
+      max-width: calc(100vw - 28px);
+      max-height: calc(100vh - 120px);
+      overflow-y: auto;
+      box-sizing: border-box;
       background: var(--search-bg);
       border: 1px solid var(--search-border);
       border-radius: 12px;
@@ -807,6 +813,397 @@
       opacity: 1;
       transform: translateX(-50%) translateY(0);
       pointer-events: auto;
+    }
+
+    /* ========================================================
+     * Aggregate Search Authorization & Launcher Modal
+     * ======================================================== */
+    .aggregate-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.58);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.22s ease;
+    }
+
+    [data-theme="light"] .aggregate-modal-backdrop {
+      background: rgba(15, 23, 42, 0.38);
+    }
+
+    .aggregate-modal-backdrop.is-visible {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .aggregate-modal-card {
+      position: relative;
+      width: 100%;
+      max-width: 440px;
+      max-height: calc(100vh - 40px);
+      background: var(--search-bg);
+      border: 1px solid var(--search-border);
+      border-radius: 20px;
+      padding: 22px 24px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      transform: scale(0.96) translateY(8px);
+      transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+      box-sizing: border-box;
+    }
+
+    [data-theme="light"] .aggregate-modal-card {
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+
+    .aggregate-modal-backdrop.is-visible .aggregate-modal-card {
+      transform: scale(1) translateY(0);
+    }
+
+    .aggregate-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .aggregate-modal-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .aggregate-modal-title-icon {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+    }
+
+    .aggregate-modal-title {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--fg);
+      letter-spacing: -0.01em;
+    }
+
+    .aggregate-modal-close {
+      width: 32px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      color: var(--fg-muted);
+      cursor: pointer;
+      padding: 0;
+      transition: background-color 0.15s ease, color 0.15s ease;
+      outline: none;
+    }
+
+    .aggregate-modal-close svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .aggregate-modal-close:hover {
+      background: var(--hover-bg);
+      color: var(--fg);
+    }
+
+    .aggregate-query-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 12px;
+      background: var(--hover-bg);
+      border: 1px solid var(--search-border);
+      border-radius: 10px;
+      font-size: 0.84rem;
+      color: var(--fg-muted);
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    .aggregate-query-label {
+      flex-shrink: 0;
+      color: var(--fg-subtle);
+      font-size: 0.8rem;
+    }
+
+    .aggregate-query-text {
+      flex: 1;
+      font-weight: 600;
+      color: var(--fg);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .aggregate-modal-notice {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 10px 12px;
+      background: rgba(59, 130, 246, 0.08);
+      border: 1px solid rgba(59, 130, 246, 0.22);
+      border-radius: 10px;
+      font-size: 0.8rem;
+      line-height: 1.5;
+      color: var(--fg-muted);
+      margin-bottom: 12px;
+    }
+
+    .aggregate-notice-icon {
+      font-size: 0.95rem;
+      line-height: 1.2;
+      flex-shrink: 0;
+    }
+
+    .aggregate-notice-text {
+      margin: 0;
+    }
+
+    .aggregate-notice-text strong {
+      color: var(--fg);
+      font-weight: 600;
+    }
+
+    .aggregate-blocked-warning {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 10px 12px;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.32);
+      border-radius: 10px;
+      font-size: 0.8rem;
+      line-height: 1.5;
+      color: #f87171;
+      margin-bottom: 12px;
+      animation: alertShake 0.4s ease;
+    }
+
+    [data-theme="light"] .aggregate-blocked-warning {
+      color: #dc2626;
+      background: rgba(239, 68, 68, 0.08);
+    }
+
+    @keyframes alertShake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-4px); }
+      40%, 80% { transform: translateX(4px); }
+    }
+
+    .aggregate-blocked-icon {
+      font-size: 1rem;
+      line-height: 1.2;
+      flex-shrink: 0;
+    }
+
+    .aggregate-blocked-text {
+      margin: 0;
+    }
+
+    .aggregate-engine-list-wrapper {
+      margin-bottom: 18px;
+    }
+
+    .aggregate-engine-list-header {
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--fg-subtle);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .aggregate-engine-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .aggregate-engine-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 9px 12px;
+      border-radius: 10px;
+      background: var(--search-bg);
+      border: 1px solid var(--search-border);
+      cursor: pointer;
+      outline: none;
+      transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    [data-theme="light"] .aggregate-engine-item {
+      background: rgba(0, 0, 0, 0.02);
+    }
+
+    .aggregate-engine-item:hover,
+    .aggregate-engine-item:focus-visible {
+      background: var(--hover-bg);
+      border-color: var(--search-border-hover);
+      transform: translateX(2px);
+    }
+
+    .aggregate-item-icon {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .aggregate-item-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .aggregate-item-name {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--fg);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .aggregate-item-domain {
+      font-size: 0.72rem;
+      color: var(--fg-subtle);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .aggregate-item-action {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.78rem;
+      color: var(--fg-muted);
+      flex-shrink: 0;
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.04);
+      transition: color 0.15s ease, background-color 0.15s ease;
+    }
+
+    [data-theme="light"] .aggregate-item-action {
+      background: rgba(0, 0, 0, 0.04);
+    }
+
+    .aggregate-engine-item:hover .aggregate-item-action {
+      color: var(--fg);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .aggregate-item-action svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .aggregate-engine-item.is-opened {
+      border-color: rgba(34, 197, 94, 0.4);
+      background: rgba(34, 197, 94, 0.06);
+    }
+
+    .aggregate-engine-item.is-opened .aggregate-item-action {
+      color: #22c55e;
+      background: rgba(34, 197, 94, 0.12);
+    }
+
+    .aggregate-modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 4px;
+    }
+
+    .aggregate-btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 24px;
+      border-radius: 9999px;
+      background: #f1f3f5;
+      color: #18181b;
+      border: 1px solid #d4d4d8;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+      transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
+      -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .aggregate-btn-primary:hover {
+      background: #e9ecef;
+      border-color: #cbd5e1;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    }
+
+    .aggregate-btn-primary:active {
+      transform: translateY(0);
+      background: #dee2e6;
+    }
+
+    .aggregate-btn-primary svg {
+      width: 16px;
+      height: 16px;
+      color: #18181b;
+    }
+
+    [data-theme="light"] img[src*="engine-all.svg"],
+    [data-theme="light"] .engine-active-icon.is-aggregate-engine,
+    [data-theme="light"] .aggregate-modal-title-icon {
+      filter: invert(1);
+    }
+
+    .engine-item-icon[src*="engine-all.svg"],
+    .engine-active-icon.is-aggregate-engine,
+    .aggregate-modal-title-icon {
+      background: transparent !important;
+    }
+
+    @media (max-width: 480px) {
+      .aggregate-modal-card {
+        padding: 16px 18px;
+        border-radius: 16px;
+      }
+      .aggregate-modal-footer {
+        justify-content: center;
+      }
+      .aggregate-btn-primary {
+        width: 100%;
+        justify-content: center;
+      }
     }
 
     /* Input & Upward-Cycling Ticker */
@@ -1106,12 +1503,12 @@
       filter: grayscale(100%) contrast(115%) brightness(95%);
       opacity: 0.92;
       will-change: transform, opacity;
-      transition: transform 0.68s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.68s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: transform 0.68s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.68s cubic-bezier(0.4, 0, 0.2, 1);
       user-select: none;
       -webkit-user-drag: none;
     }
 
-    /* Cover Image Upward Transition States */
+    /* Cover Image Upward Transition States: connected edge-to-edge overlap */
     .cover-image.state-center {
       transform: translateY(0);
       opacity: 0.92;
@@ -1123,7 +1520,7 @@
     }
 
     .cover-image.state-enter-down {
-      transform: translateY(100%);
+      transform: translateY(calc(100% - 1px));
       opacity: 0;
     }
 
@@ -1413,9 +1810,21 @@
         width: 18px;
         height: 18px;
       }
+      .engine-dropdown {
+        top: auto;
+        bottom: calc(100% + 12px);
+        left: 5px;
+        transform: translateY(6px) scale(0.98);
+      }
+      .search-engine-selector.is-open .engine-dropdown {
+        transform: translateY(0) scale(1);
+      }
     }
 
     @media (max-width: 480px) {
+      .engine-dropdown {
+        left: 1px;
+      }
       .jiakuan-nav-btn {
         top: 12px;
         left: 12px;
@@ -1831,6 +2240,63 @@
     </footer>
   </main>
 
+  <!-- Aggregate Search Prompt & Launcher Modal (Centered dialog) -->
+  <div class="aggregate-modal-backdrop" id="aggregate-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="aggregate-modal-title" aria-hidden="true">
+    <div class="aggregate-modal-card">
+      <div class="aggregate-modal-header">
+        <div class="aggregate-modal-title-group">
+          <img src="assets/images/engine-all.svg" class="aggregate-modal-title-icon" alt="" aria-hidden="true" />
+          <h2 class="aggregate-modal-title" id="aggregate-modal-title">聚合搜索</h2>
+        </div>
+        <button type="button" class="aggregate-modal-close" id="aggregate-modal-close" aria-label="关闭窗口">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="aggregate-modal-body">
+        <div class="aggregate-query-badge" id="aggregate-query-badge">
+          <span class="aggregate-query-label">检索词：</span>
+          <span class="aggregate-query-text" id="aggregate-query-text"></span>
+        </div>
+
+        <div class="aggregate-modal-notice">
+          <div class="aggregate-notice-icon" aria-hidden="true">ℹ️</div>
+          <p class="aggregate-notice-text">
+            聚合搜索将在新标签页中打开以下 <strong><span id="aggregate-engine-count">5</span></strong> 个搜索引擎。由于浏览器安全策略限制，需要在浏览器地址栏提示中选择<strong>「始终允许弹出式窗口」</strong>，或直接点击下方搜索引擎单独打开。
+          </p>
+        </div>
+
+        <div class="aggregate-blocked-warning" id="aggregate-blocked-warning" style="display: none;">
+          <span class="aggregate-blocked-icon">⚠️</span>
+          <span class="aggregate-blocked-text">部分标签页被浏览器拦截！请在浏览器地址栏右侧点击拦截图标，选择「始终允许本站弹出式窗口」，然后再次点击打开；或直接点击下方列表逐一打开。</span>
+        </div>
+
+        <div class="aggregate-engine-list-wrapper">
+          <div class="aggregate-engine-list-header">
+            <span>即将打开的搜索引擎（也可单独选择搜索引擎搜索）</span>
+          </div>
+          <div class="aggregate-engine-list" id="aggregate-engine-list">
+            <!-- Dynamically populated via JS -->
+          </div>
+        </div>
+      </div>
+
+      <div class="aggregate-modal-footer">
+        <button type="button" class="aggregate-btn-primary" id="aggregate-btn-primary">
+          <svg class="aggregate-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <line x1="10" y1="14" x2="21" y2="3"></line>
+          </svg>
+          一键在新标签打开全部搜索引擎
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     (function () {
       'use strict';
@@ -2019,6 +2485,7 @@
           if (activeIconEl) {
             activeIconEl.src = 'assets/images/engine-all.svg';
             activeIconEl.alt = '聚合搜索';
+            activeIconEl.classList.add('is-aggregate-engine');
           }
           if (engineBtn) {
             engineBtn.setAttribute('title', '当前搜索引擎：聚合搜索（同时检索所有引擎）');
@@ -2034,6 +2501,7 @@
           if (activeIconEl) {
             activeIconEl.src = active.icon;
             activeIconEl.alt = active.name;
+            activeIconEl.classList.remove('is-aggregate-engine');
           }
           if (engineBtn) {
             engineBtn.setAttribute('title', '当前搜索引擎：' + active.name + '（点击切换）');
@@ -2195,6 +2663,30 @@
         }
       }
 
+      // First-time visit auto-show search engine list when input is focused
+      const FIRST_FOCUS_ENGINE_KEY = 'bxks_first_focus_engine_shown';
+      let justAutoOpenedByFocus = false;
+
+      if (searchInput) {
+        searchInput.addEventListener('focus', () => {
+          let hasShown = false;
+          try {
+            hasShown = !!localStorage.getItem(FIRST_FOCUS_ENGINE_KEY);
+          } catch (e) {}
+
+          if (!hasShown) {
+            try {
+              localStorage.setItem(FIRST_FOCUS_ENGINE_KEY, '1');
+            } catch (e) {}
+            openEngineDropdown();
+            justAutoOpenedByFocus = true;
+            setTimeout(() => {
+              justAutoOpenedByFocus = false;
+            }, 300);
+          }
+        });
+      }
+
       if (searchEngineBtn) {
         searchEngineBtn.addEventListener('click', (event) => {
           event.preventDefault();
@@ -2204,15 +2696,22 @@
       }
 
       document.addEventListener('click', (event) => {
+        if (justAutoOpenedByFocus) return;
         if (searchEngineSelector && !searchEngineSelector.contains(event.target)) {
           closeEngineDropdown();
         }
       });
 
       document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && searchEngineSelector && searchEngineSelector.classList.contains('is-open')) {
-          closeEngineDropdown();
-          if (searchInput) searchInput.focus();
+        if (event.key === 'Escape') {
+          if (aggregateModalBackdrop && aggregateModalBackdrop.classList.contains('is-visible')) {
+            closeAggregateModal();
+            return;
+          }
+          if (searchEngineSelector && searchEngineSelector.classList.contains('is-open')) {
+            closeEngineDropdown();
+            if (searchInput) searchInput.focus();
+          }
         }
       });
 
@@ -2230,12 +2729,20 @@
       let shuffleBag = [];
       const preloadedImageSet = new Set([0]); // Book 0 (物种起源) is rendered in initial HTML
 
+      function getBookCoverSrc(idx) {
+        try {
+          const cached = localStorage.getItem('bxks_cover_img_' + idx);
+          if (cached) return cached;
+        } catch (e) {}
+        return `assets/images/book_${idx}.jpg`;
+      }
+
       function preloadBookImage(idx) {
         if (preloadedImageSet.has(idx)) return;
         preloadedImageSet.add(idx);
         const img = new Image();
         img.decoding = 'async';
-        img.src = `assets/images/book_${idx}.jpg`;
+        img.src = getBookCoverSrc(idx);
         if (typeof img.decode === 'function') {
           img.decode().catch(() => {});
         }
@@ -2310,7 +2817,7 @@
         const currentImage = document.getElementById('cover-image');
         const newImage = document.createElement('img');
         newImage.className = 'cover-image state-enter-down';
-        newImage.src = `assets/images/book_${nextIndex}.jpg`;
+        newImage.src = getBookCoverSrc(nextIndex);
         newImage.alt = '';
         newImage.loading = 'eager';
         newImage.decoding = 'async';
@@ -2398,13 +2905,14 @@
         }
       }
 
-      // Input change listener: hides ticker when user enters text
+      // Input change listener: hides ticker and closes engine dropdown when user enters text
       function handleInputChange() {
         if (searchInput.value.trim().length > 0) {
           searchContainer.classList.add('has-value');
         } else {
           searchContainer.classList.remove('has-value');
         }
+        closeEngineDropdown();
       }
 
       searchInput.addEventListener('input', handleInputChange);
@@ -2420,6 +2928,81 @@
       });
 
       startTicker();
+
+      // First-time visit: download all cover images and store in localStorage
+      (function initCoverLocalStorageCache() {
+        const STORAGE_DONE_KEY = 'bxks_covers_downloaded_v1';
+        const STORAGE_PREFIX = 'bxks_cover_img_';
+
+        try {
+          if (localStorage.getItem(STORAGE_DONE_KEY)) {
+            const initialCover = document.getElementById('cover-image');
+            const cached0 = localStorage.getItem(STORAGE_PREFIX + '0');
+            if (initialCover && cached0) {
+              initialCover.src = cached0;
+            }
+            return;
+          }
+        } catch (e) {
+          return;
+        }
+
+        const totalBooks = BOOK_LIST.length;
+        let currentIndex = 0;
+
+        function downloadNext() {
+          if (currentIndex >= totalBooks) {
+            try {
+              localStorage.setItem(STORAGE_DONE_KEY, '1');
+            } catch (e) {}
+            return;
+          }
+
+          const idx = currentIndex++;
+          const key = STORAGE_PREFIX + idx;
+          try {
+            if (localStorage.getItem(key)) {
+              setTimeout(downloadNext, 20);
+              return;
+            }
+          } catch (e) {}
+
+          fetch(`assets/images/book_${idx}.jpg`)
+            .then((res) => {
+              if (!res.ok) throw new Error('HTTP ' + res.status);
+              return res.blob();
+            })
+            .then((blob) => {
+              const reader = new FileReader();
+              reader.onloadend = () => {
+                const base64 = reader.result;
+                try {
+                  localStorage.setItem(key, base64);
+                  if (idx === 0) {
+                    const initialCover = document.getElementById('cover-image');
+                    if (initialCover && currentBookIndex === 0) {
+                      initialCover.src = base64;
+                    }
+                  }
+                } catch (err) {
+                  console.warn('LocalStorage quota limit reached during cover cache:', err);
+                  return;
+                }
+                setTimeout(downloadNext, 30);
+              };
+              reader.readAsDataURL(blob);
+            })
+            .catch(() => {
+              setTimeout(downloadNext, 50);
+            });
+        }
+
+        if ('requestIdleCallback' in window) {
+          requestIdleCallback(() => downloadNext(), { timeout: 1500 });
+        } else {
+          setTimeout(downloadNext, 1000);
+        }
+      })();
 
       function showSearchToast(message, duration = 3800) {
         let toast = document.getElementById('search-toast');
@@ -2453,43 +3036,9 @@
 
         if (!finalQuery) return;
 
-        // If "聚合搜索" is selected: simultaneously open all search engines in new tabs
+        // If "聚合搜索" is selected: open aggregate search prompt modal in center of page
         if (currentEngineName === '聚合搜索') {
-          const engines = getDistinctEngines();
-          let blockedCount = 0;
-
-          engines.forEach((eng) => {
-            const selection = selectEngineMirror(eng.name);
-            if (!selection || !selection.domain) return;
-            const searchUrl = buildSearchUrl(selection.name || eng.name, selection.domain, finalQuery);
-
-            try {
-              const win = window.open(searchUrl, '_blank', 'noopener,noreferrer');
-              if (!win) {
-                blockedCount++;
-                const link = document.createElement('a');
-                link.href = searchUrl;
-                link.target = '_blank';
-                link.rel = 'noopener noreferrer';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-              }
-            } catch (err) {
-              blockedCount++;
-              const link = document.createElement('a');
-              link.href = searchUrl;
-              link.target = '_blank';
-              link.rel = 'noopener noreferrer';
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-            }
-          });
-
-          if (blockedCount > 0) {
-            showSearchToast('已发起聚合搜索，若部分标签页未打开，请在浏览器地址栏允许弹出窗口');
-          }
+          openAggregateModal(finalQuery);
           return;
         }
 
@@ -2505,6 +3054,197 @@
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+      }
+
+      // ========================================================
+      // Aggregate Search Prompt & Launcher Modal
+      // ========================================================
+      const aggregateModalBackdrop = document.getElementById('aggregate-modal-backdrop');
+      const aggregateModalCloseBtn = document.getElementById('aggregate-modal-close');
+      const aggregateBtnPrimary = document.getElementById('aggregate-btn-primary');
+      const aggregateQueryText = document.getElementById('aggregate-query-text');
+      const aggregateEngineCount = document.getElementById('aggregate-engine-count');
+      const aggregateEngineList = document.getElementById('aggregate-engine-list');
+      const aggregateBlockedWarning = document.getElementById('aggregate-blocked-warning');
+
+      let currentAggregateAllocations = [];
+      let currentAggregateQuery = '';
+
+      function openAggregateModal(query) {
+        if (!aggregateModalBackdrop) return;
+        currentAggregateQuery = query;
+
+        if (aggregateQueryText) {
+          aggregateQueryText.textContent = query;
+        }
+
+        if (aggregateBlockedWarning) {
+          aggregateBlockedWarning.style.display = 'none';
+        }
+
+        const engines = getDistinctEngines();
+        // Each search engine only gets ONE mirror URL based on weight allocation
+        currentAggregateAllocations = engines.map((eng) => {
+          const selection = selectEngineMirror(eng.name);
+          const searchUrl = selection && selection.domain
+            ? buildSearchUrl(selection.name || eng.name, selection.domain, query)
+            : '';
+          let displayDomain = '';
+          try {
+            displayDomain = new URL(selection.domain).hostname;
+          } catch (e) {
+            displayDomain = selection ? selection.domain : '';
+          }
+          return {
+            name: eng.name,
+            icon: eng.icon,
+            domain: selection ? selection.domain : '',
+            displayDomain: displayDomain,
+            searchUrl: searchUrl,
+            opened: false
+          };
+        }).filter((item) => item.searchUrl);
+
+        if (aggregateEngineCount) {
+          aggregateEngineCount.textContent = currentAggregateAllocations.length;
+        }
+
+        renderAggregateEngineList();
+
+        aggregateModalBackdrop.classList.add('is-visible');
+        aggregateModalBackdrop.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeAggregateModal() {
+        if (!aggregateModalBackdrop) return;
+        aggregateModalBackdrop.classList.remove('is-visible');
+        aggregateModalBackdrop.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      }
+
+      function renderAggregateEngineList() {
+        if (!aggregateEngineList) return;
+        const frag = document.createDocumentFragment();
+
+        currentAggregateAllocations.forEach((item, index) => {
+          const card = document.createElement('div');
+          card.className = 'aggregate-engine-item' + (item.opened ? ' is-opened' : '');
+          card.setAttribute('role', 'button');
+          card.setAttribute('tabindex', '0');
+          card.setAttribute('aria-label', `使用 ${item.name} 搜索「${currentAggregateQuery}」`);
+          card.title = `点击使用 ${item.name} 搜索「${currentAggregateQuery}」`;
+          card.dataset.engineIndex = String(index);
+
+          // Icon
+          const icon = document.createElement('img');
+          icon.className = 'aggregate-item-icon';
+          icon.src = item.icon;
+          icon.alt = '';
+          icon.setAttribute('aria-hidden', 'true');
+
+          // Info (Name + Domain)
+          const info = document.createElement('div');
+          info.className = 'aggregate-item-info';
+
+          const nameEl = document.createElement('div');
+          nameEl.className = 'aggregate-item-name';
+          nameEl.textContent = item.name;
+
+          const domainEl = document.createElement('div');
+          domainEl.className = 'aggregate-item-domain';
+          domainEl.textContent = item.displayDomain || item.domain;
+
+          info.appendChild(nameEl);
+          info.appendChild(domainEl);
+
+          // Action Indicator
+          const action = document.createElement('div');
+          action.className = 'aggregate-item-action';
+          action.innerHTML = item.opened
+            ? `<span>已打开</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>`
+            : `<span>打开搜索</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>`;
+
+          card.appendChild(icon);
+          card.appendChild(info);
+          card.appendChild(action);
+
+          card.addEventListener('click', () => {
+            openSingleAggregateEngine(index);
+          });
+
+          card.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              openSingleAggregateEngine(index);
+            }
+          });
+
+          frag.appendChild(card);
+        });
+
+        aggregateEngineList.replaceChildren(frag);
+      }
+
+      function openSingleAggregateEngine(index) {
+        const item = currentAggregateAllocations[index];
+        if (!item || !item.searchUrl) return;
+
+        item.opened = true;
+        renderAggregateEngineList();
+
+        try {
+          const win = window.open(item.searchUrl, '_blank');
+          if (win) {
+            try { win.opener = null; } catch (e) {}
+          }
+        } catch (e) {}
+      }
+
+      function openAllAggregateEngines() {
+        if (!currentAggregateAllocations.length) return;
+        let blockedCount = 0;
+
+        currentAggregateAllocations.forEach((item, index) => {
+          try {
+            const win = window.open(item.searchUrl, '_blank');
+            if (!win) {
+              blockedCount++;
+            } else {
+              item.opened = true;
+              try { win.opener = null; } catch (e) {}
+            }
+          } catch (err) {
+            blockedCount++;
+          }
+        });
+
+        renderAggregateEngineList();
+
+        if (blockedCount > 0) {
+          const warningEl = document.getElementById('aggregate-blocked-warning');
+          if (warningEl) {
+            warningEl.style.display = 'flex';
+          }
+          showSearchToast('部分标签页已被浏览器拦截，请在地址栏允许弹出窗口');
+        } else {
+          closeAggregateModal();
+          showSearchToast('已成功在新标签页打开所有搜索引擎');
+        }
+      }
+
+      if (aggregateModalCloseBtn) {
+        aggregateModalCloseBtn.addEventListener('click', closeAggregateModal);
+      }
+      if (aggregateBtnPrimary) {
+        aggregateBtnPrimary.addEventListener('click', openAllAggregateEngines);
+      }
+      if (aggregateModalBackdrop) {
+        aggregateModalBackdrop.addEventListener('click', (e) => {
+          if (e.target === aggregateModalBackdrop) {
+            closeAggregateModal();
+          }
+        });
       }
 
       /* 
