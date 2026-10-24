@@ -247,6 +247,7 @@
 
     .row .grow { flex: 1 1 240px; min-width: 0; }
     .row .w-label { flex: 0 1 168px; min-width: 120px; }
+    .row .w-name { flex: 0 1 180px; min-width: 130px; }
     .row .w-weight { flex: 0 0 84px; }
     .row .pct {
       flex: 0 0 52px;
@@ -343,6 +344,7 @@
     #log .warn { color: var(--fg-muted); font-weight: 700; }
 
     @media (max-width: 560px) {
+      .row .w-name { flex: 1 1 130px; }
       .row .w-label { flex: 1 1 130px; }
       .row .actions { margin-left: 0; }
     }
@@ -385,11 +387,18 @@
 
     <!-- 2. Search routing -->
     <section class="panel">
-      <h2>搜索分发权重</h2>
-      <p class="desc">当前激活的搜索引擎，首页搜索时按权重随机分发；权重自动归一化，无需合计为 100，全部停用时按列表顺序兜底。</p>
+      <h2>搜索引擎与分发权重</h2>
+      <p class="desc">为不同搜索引擎网址设置所属网站名称（如 Anna’s Archive、Libgen、Bookracy、WeLib 等），同一网站名称下的多个网址按权重自动计算组内分发比例；首页可通过放大镜图标下拉切换不同的搜索引擎。</p>
+      <datalist id="engine-name-suggestions">
+        <option value="Anna’s Archive"></option>
+        <option value="Libgen"></option>
+        <option value="Bookracy"></option>
+        <option value="WeLib"></option>
+        <option value="Z-Library"></option>
+      </datalist>
       <div class="rows" id="engine-rows"></div>
       <div class="actions-bar">
-        <button id="btn-add-engine" class="btn btn-ghost" type="button">＋ 添加搜索引擎</button>
+        <button id="btn-add-engine" class="btn btn-ghost" type="button">＋ 添加搜索引擎网址</button>
         <button id="btn-fill-engines" class="btn btn-ghost" type="button">补全未分发的镜像域名</button>
         <span class="hint" id="engine-total" style="margin: 0;"></span>
       </div>
@@ -699,7 +708,8 @@
       }
 
       function newEngine() {
-        return { domain: '', weight: 25, enabled: true };
+        const last = state.searchEngines[state.searchEngines.length - 1];
+        return { name: (last && last.name) || 'Anna’s Archive', domain: '', weight: 25, enabled: true };
       }
 
       function renderMirrors() {
@@ -750,6 +760,16 @@
         const frag = document.createDocumentFragment();
 
         state.searchEngines.forEach(function (item, index) {
+          const nameInput = el('input', {
+            type: 'text',
+            class: 'f-name',
+            list: 'engine-name-suggestions',
+            spellcheck: 'false',
+            placeholder: '所属网站名称',
+            'aria-label': '所属网站名称 ' + (index + 1),
+            value: item.name || ''
+          });
+
           const domainInput = el('input', {
             type: 'text',
             class: 'f-domain',
@@ -772,6 +792,7 @@
           enabledBox.checked = item.enabled !== false;
 
           frag.appendChild(el('div', { class: 'row', 'data-index': String(index) }, [
+            el('div', { class: 'w-name' }, [nameInput]),
             el('div', { class: 'grow' }, [domainInput]),
             el('div', { class: 'w-weight' }, [weightInput]),
             el('div', { class: 'pct' }, ['0%']),
@@ -793,10 +814,22 @@
         const mirrorOn = state.mirrors.filter(function (m) { return m.enabled !== false && String(m.url).trim(); }).length;
         els.mirrorCount.textContent = '共 ' + mirrorTotal + ' 条，启用 ' + mirrorOn + ' 条';
 
-        const active = state.searchEngines.filter(function (e) {
+        // Calculate weights grouped by website name
+        const groupTotals = {};
+        const activeEngines = state.searchEngines.filter(function (e) {
           return e.enabled !== false && String(e.domain).trim() && Number(e.weight) > 0;
         });
-        const total = active.reduce(function (sum, e) { return sum + Number(e.weight); }, 0);
+
+        activeEngines.forEach(function (e) {
+          const name = String(e.name || '通用').trim();
+          groupTotals[name] = (groupTotals[name] || 0) + Number(e.weight);
+        });
+
+        const distinctNames = new Set(
+          state.searchEngines
+            .map(function (e) { return String(e.name || '').trim(); })
+            .filter(Boolean)
+        );
 
         const rows = els.engineRows.querySelectorAll('.row');
         state.searchEngines.forEach(function (item, index) {
@@ -804,12 +837,21 @@
           if (!row) return;
           const pct = row.querySelector('.pct');
           if (!pct) return;
-          const usable = item.enabled !== false && String(item.domain).trim() && Number(item.weight) > 0 && total > 0;
-          pct.textContent = usable ? ((Number(item.weight) / total) * 100).toFixed(1) + '%' : '-';
+          const name = String(item.name || '通用').trim();
+          const groupTotal = groupTotals[name] || 0;
+          const usable = item.enabled !== false && String(item.domain).trim() && Number(item.weight) > 0 && groupTotal > 0;
+          if (usable) {
+            const share = ((Number(item.weight) / groupTotal) * 100).toFixed(1) + '%';
+            pct.textContent = share;
+            pct.title = '在「' + name + '」所属网站内权重占比 ' + share;
+          } else {
+            pct.textContent = '-';
+            pct.title = '未启用或权重为 0';
+          }
         });
 
-        els.engineTotal.textContent = active.length
-          ? '参与分发 ' + active.length + ' 条，权重合计 ' + total
+        els.engineTotal.textContent = activeEngines.length
+          ? '共 ' + distinctNames.size + ' 个所属网站，' + activeEngines.length + ' 条有效分发网址'
           : '未配置有效的分发域名';
       }
 
@@ -851,16 +893,25 @@
           renderMirrors();
         });
 
-        els.engineRows.addEventListener('input', function (event) {
+        function handleEngineChange(event) {
           const index = rowIndex(event);
           const item = state.searchEngines[index];
           if (!item) return;
-          if (event.target.classList.contains('f-domain')) item.domain = event.target.value;
-          else if (event.target.classList.contains('f-weight')) item.weight = Number(event.target.value);
-          else if (event.target.classList.contains('f-enabled')) item.enabled = event.target.checked;
+          if (event.target.classList.contains('f-name')) {
+            item.name = event.target.value;
+          } else if (event.target.classList.contains('f-domain')) {
+            item.domain = event.target.value;
+          } else if (event.target.classList.contains('f-weight')) {
+            item.weight = Number(event.target.value);
+          } else if (event.target.classList.contains('f-enabled')) {
+            item.enabled = event.target.checked;
+          }
           markDirty();
           updateCounts();
-        });
+        }
+
+        els.engineRows.addEventListener('input', handleEngineChange);
+        els.engineRows.addEventListener('change', handleEngineChange);
 
         els.engineRows.addEventListener('click', function (event) {
           const button = event.target.closest('button[data-act]');
@@ -909,13 +960,21 @@
             const domain = String(mirror.url).trim().replace(/\/+$/, '');
             if (!domain || known.has(domain.toLowerCase())) return;
             known.add(domain.toLowerCase());
-            state.searchEngines.push({ domain: domain, weight: 25, enabled: true });
+
+            let defaultName = String(mirror.label || '').trim() || '通用';
+            if (defaultName === '没墙' || defaultName === '需代理' || defaultName === '本站网址' || defaultName === '本站镜像' || defaultName === '官方防丢渠道') {
+              defaultName = 'Z-Library';
+            } else if (defaultName.toLowerCase().includes('genesis')) {
+              defaultName = 'Libgen';
+            }
+
+            state.searchEngines.push({ name: defaultName, domain: domain, weight: 25, enabled: true });
             added++;
           });
           if (added) {
             markDirty();
             renderEngines();
-            log('已补全 ' + added + ' 个分发域名，可自行调整权重', 'ok');
+            log('已补全 ' + added + ' 个分发域名，可自行调整权重与所属网站', 'ok');
           } else {
             log('没有需要补全的镜像域名');
           }
@@ -937,9 +996,20 @@
 
       function normalizeEngines(list) {
         return (Array.isArray(list) ? list : []).map(function (item) {
+          let name = String((item && item.name) || '').trim();
+          const domain = String((item && item.domain) || '').trim();
+          if (!name) {
+            const d = domain.toLowerCase();
+            if (d.includes('anna')) name = 'Anna’s Archive';
+            else if (d.includes('libgen')) name = 'Libgen';
+            else if (d.includes('bookracy')) name = 'Bookracy';
+            else if (d.includes('welib')) name = 'WeLib';
+            else name = 'Z-Library';
+          }
           return {
-            domain: String((item && item.domain) || '').trim(),
-            weight: Number(item && item.weight) > 0 ? Number(item.weight) : 25,
+            name: name,
+            domain: domain,
+            weight: Number(item && item.weight) >= 0 ? Number(item.weight) : 25,
             enabled: !item || item.enabled !== false
           };
         });
@@ -976,8 +1046,9 @@
           .map(function (item) {
             const weight = Number(item.weight);
             return {
+              name: String(item.name || '').trim() || '通用',
               domain: String(item.domain).trim().replace(/\/+$/, ''),
-              weight: weight > 0 ? weight : 0,
+              weight: weight >= 0 ? weight : 0,
               enabled: item.enabled !== false
             };
           });

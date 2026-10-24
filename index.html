@@ -566,26 +566,208 @@
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.05);
     }
 
-    /* Magnifying Glass Indicator */
-    .search-icon-wrapper {
+    /* Magnifying Glass & Search Engine Selector */
+    .search-engine-selector {
+      position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      margin-right: 10px;
-      color: var(--icon-color);
-      pointer-events: none;
-      transition: color 0.2s ease;
+      margin-right: 8px;
+      z-index: 25;
     }
 
-    .search-form:focus-within .search-icon-wrapper {
+    .search-engine-btn {
+      position: relative;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      padding: 0;
+      margin: 0;
+      cursor: pointer;
+      border-radius: 8px;
+      outline: none;
+      color: var(--icon-color);
+      transition: background-color 0.18s ease, color 0.18s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .search-engine-btn:hover {
+      background-color: var(--hover-bg);
       color: var(--icon-focus);
     }
 
-    .search-icon {
+    .search-engine-btn:focus-visible {
+      outline: 2px solid var(--search-focus-border);
+      outline-offset: 2px;
+    }
+
+    .search-form:focus-within .search-engine-btn {
+      color: var(--icon-focus);
+    }
+
+    .search-engine-btn .mag-icon {
+      position: absolute;
       width: 19px;
       height: 19px;
       display: block;
+      pointer-events: none;
+      transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .search-engine-btn .engine-active-icon {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      border-radius: 4px;
+      pointer-events: none;
+      transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      opacity: 0;
+      transform: scale(0.75);
+    }
+
+    /* Hover on icon wrapper or Focus inside search form: switch to current engine icon */
+    .search-engine-selector:hover .search-engine-btn .mag-icon,
+    .search-form:focus-within .search-engine-selector .search-engine-btn .mag-icon,
+    .search-engine-selector.is-open .search-engine-btn .mag-icon {
+      opacity: 0;
+      transform: scale(0.75);
+    }
+
+    .search-engine-selector:hover .search-engine-btn .engine-active-icon,
+    .search-form:focus-within .search-engine-selector .search-engine-btn .engine-active-icon,
+    .search-engine-selector.is-open .search-engine-btn .engine-active-icon {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+    }
+
+    /* Engine Dropdown Menu */
+    .engine-dropdown {
+      position: absolute;
+      top: calc(100% + 12px);
+      left: -6px;
+      min-width: 196px;
+      background: var(--search-bg);
+      border: 1px solid var(--search-border);
+      border-radius: 12px;
+      padding: 6px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-6px) scale(0.98);
+      transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.2s ease;
+      pointer-events: none;
+      user-select: none;
+      z-index: 100;
+      text-align: left;
+    }
+
+    [data-theme="light"] .engine-dropdown {
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .search-engine-selector.is-open .engine-dropdown {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .engine-dropdown-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 8px 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 4px;
+    }
+
+    [data-theme="light"] .engine-dropdown-header {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+    }
+
+    .engine-dropdown-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--fg-subtle);
+      letter-spacing: 0.04em;
+    }
+
+    .engine-dropdown-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .engine-dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--fg);
+      font-size: 0.85rem;
+      text-decoration: none;
+      transition: background-color 0.15s ease, color 0.15s ease;
+      outline: none;
+    }
+
+    .engine-dropdown-item:hover,
+    .engine-dropdown-item:focus-visible {
+      background-color: var(--hover-bg);
+      color: var(--fg);
+    }
+
+    .engine-dropdown-item.is-selected {
+      background-color: var(--hover-bg);
+      font-weight: 600;
+    }
+
+    .engine-dropdown-item .engine-item-icon {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      border-radius: 4px;
+      flex-shrink: 0;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    [data-theme="light"] .engine-dropdown-item .engine-item-icon {
+      background: rgba(0, 0, 0, 0.03);
+    }
+
+    .engine-dropdown-item .engine-item-name {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .engine-dropdown-item .engine-item-check {
+      width: 14px;
+      height: 14px;
+      color: var(--fg);
+      opacity: 0;
+      flex-shrink: 0;
+      transition: opacity 0.15s ease;
+    }
+
+    .engine-dropdown-item.is-selected .engine-item-check {
+      opacity: 1;
     }
 
     /* Input & Upward-Cycling Ticker */
@@ -1483,12 +1665,35 @@
     <!-- Search Section -->
     <section class="search-section" aria-label="书籍检索">
       <form class="search-form" id="search-form" role="search" target="_blank" rel="noopener noreferrer" novalidate>
-        <!-- Magnifying Glass Indicator Icon -->
-        <div class="search-icon-wrapper" aria-hidden="true">
-          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="7.5"></circle>
-            <line x1="21" y1="21" x2="16.5" y2="16.5"></line>
-          </svg>
+        <!-- Search Engine Selector & Indicator -->
+        <div class="search-engine-selector" id="search-engine-selector">
+          <button
+            type="button"
+            class="search-engine-btn"
+            id="search-engine-btn"
+            aria-haspopup="listbox"
+            aria-expanded="false"
+            aria-label="选择搜索引擎"
+            title="点击切换搜索引擎"
+          >
+            <!-- Default magnifying glass icon -->
+            <svg class="search-icon mag-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="7.5"></circle>
+              <line x1="21" y1="21" x2="16.5" y2="16.5"></line>
+            </svg>
+            <!-- Current search engine icon (revealed on hover / focus / open) -->
+            <img class="engine-active-icon" id="engine-active-icon" src="assets/images/engine-annas.png" alt="当前搜索引擎" aria-hidden="true" />
+          </button>
+
+          <!-- Dropdown menu showing available engines -->
+          <div class="engine-dropdown" id="engine-dropdown" role="listbox" aria-label="搜索引擎列表">
+            <div class="engine-dropdown-header">
+              <span class="engine-dropdown-title">选择搜索引擎</span>
+            </div>
+            <ul class="engine-dropdown-list" id="engine-dropdown-list">
+              <!-- Rendered by script -->
+            </ul>
+          </div>
         </div>
 
         <!-- Input Field Container -->
@@ -1635,47 +1840,222 @@
         { title: '生命3.0', author: '迈克斯·泰格马克' }
       ];
 
-      // Search engine configurations (distributed evenly across active mirrors, 25% each).
-      // Replaced at runtime by data/mirrors.json (edited through the /dtms CMS).
-      let SEARCH_ENGINES = [
-        { domain: 'https://libb.la', weight: 25, enabled: true },
-        { domain: 'https://z-library.website', weight: 25, enabled: true },
-        { domain: 'https://zh.swe101.ru', weight: 25, enabled: true },
-        { domain: 'https://zh.101isfj.ru', weight: 25, enabled: true }
+      // Search Engine Icons
+      const ENGINE_ICON_MAP = {
+        'anna’s archive': 'assets/images/engine-annas.png',
+        'annas archive': 'assets/images/engine-annas.png',
+        'annas-archive': 'assets/images/engine-annas.png',
+        'anna': 'assets/images/engine-annas.png',
+        'libgen': 'assets/images/engine-libgen.ico',
+        'library genesis': 'assets/images/engine-libgen.ico',
+        'bookracy': 'assets/images/engine-bookracy.png',
+        'welib': 'assets/images/engine-welib.png',
+        'z-library': 'assets/images/engine-zlib.svg',
+        'zlibrary': 'assets/images/engine-zlib.svg',
+        'z-lib': 'assets/images/engine-zlib.svg'
+      };
+
+      function resolveEngineIcon(name, domain) {
+        const key = String(name || '').toLowerCase().trim();
+        if (ENGINE_ICON_MAP[key]) return ENGINE_ICON_MAP[key];
+        for (const [k, v] of Object.entries(ENGINE_ICON_MAP)) {
+          if (key.includes(k)) return v;
+        }
+        const d = String(domain || '').toLowerCase();
+        for (const [k, v] of Object.entries(ENGINE_ICON_MAP)) {
+          if (d.includes(k)) return v;
+        }
+        return 'assets/images/engine-annas.png';
+      }
+
+      // Default built-in search engines configuration
+      let SEARCH_ENGINE_CONFIGS = [
+        { name: 'Anna’s Archive', domain: 'https://annas-archive.pk', weight: 34, enabled: true },
+        { name: 'Anna’s Archive', domain: 'https://annas-archive.gl', weight: 33, enabled: true },
+        { name: 'Anna’s Archive', domain: 'https://annas-archive.gd', weight: 33, enabled: true },
+        { name: 'Libgen', domain: 'https://libgen.li', weight: 40, enabled: true },
+        { name: 'Libgen', domain: 'https://libgen.la', weight: 30, enabled: true },
+        { name: 'Libgen', domain: 'https://libgen.vg', weight: 30, enabled: true },
+        { name: 'Bookracy', domain: 'https://bookracy.com', weight: 100, enabled: true },
+        { name: 'WeLib', domain: 'https://welib.org', weight: 100, enabled: true },
+        { name: 'Z-Library', domain: 'https://libb.la', weight: 50, enabled: true },
+        { name: 'Z-Library', domain: 'https://zh.swe101.ru', weight: 25, enabled: true },
+        { name: 'Z-Library', domain: 'https://zh.101isfj.ru', weight: 25, enabled: false }
       ];
 
-      /**
-       * Pick a search engine based on the specified probability distribution.
-       * Weights are relative and normalized on the fly, so any positive scale works.
-       */
-      function selectSearchEngine() {
-        const active = SEARCH_ENGINES.filter(
-          (engine) => engine && engine.domain && engine.enabled !== false && Number(engine.weight) > 0
-        );
-        const pool = active.length ? active : SEARCH_ENGINES.filter((engine) => engine && engine.domain);
-        if (!pool.length) return '';
+      let currentEngineName = (function() {
+        try {
+          return localStorage.getItem('bxks_active_engine') || 'Anna’s Archive';
+        } catch (e) {
+          return 'Anna’s Archive';
+        }
+      })();
 
-        const total = pool.reduce((sum, engine) => sum + Number(engine.weight), 0);
-        if (!(total > 0)) return pool[0].domain;
+      /**
+       * Convert target domain and query to the appropriate search route for the engine:
+       * - Anna's Archive: https://{domain}/search?q={query}
+       * - Libgen:         https://{domain}/index.php?req={query}
+       * - Bookracy:       https://{domain}/?q={query}
+       * - WeLib:          https://{domain}/search?q={query}
+       * - Z-Library:      https://{domain}/s/{query}
+       */
+      function buildSearchUrl(engineName, baseDomain, query) {
+        const domain = baseDomain.replace(/\/+$/, '');
+        const encodedQuery = encodeURIComponent(query);
+        const name = String(engineName || '').toLowerCase();
+        const host = domain.toLowerCase();
+
+        if (name.includes('anna') || host.includes('annas-archive') || host.includes('anna-archive')) {
+          return `${domain}/search?q=${encodedQuery}`;
+        }
+        if (name.includes('libgen') || host.includes('libgen')) {
+          return `${domain}/index.php?req=${encodedQuery}`;
+        }
+        if (name.includes('bookracy') || host.includes('bookracy')) {
+          return `${domain}/?q=${encodedQuery}`;
+        }
+        if (name.includes('welib') || host.includes('welib')) {
+          return `${domain}/search?q=${encodedQuery}`;
+        }
+        if (name.includes('z-lib') || name.includes('zlibrary') || host.includes('libb') || host.includes('swe101') || host.includes('101isfj') || host.includes('z-lib')) {
+          return `${domain}/s/${encodedQuery}`;
+        }
+        return `${domain}/search?q=${encodedQuery}`;
+      }
+
+      function selectEngineMirror(engineName) {
+        const targetName = String(engineName || '').trim().toLowerCase();
+        let mirrors = SEARCH_ENGINE_CONFIGS.filter((e) => {
+          return e && e.domain && String(e.name || '').trim().toLowerCase() === targetName;
+        });
+
+        if (!mirrors.length) {
+          mirrors = SEARCH_ENGINE_CONFIGS.filter((e) => e && e.domain);
+        }
+
+        const active = mirrors.filter((e) => e.enabled !== false && Number(e.weight) > 0);
+        const pool = active.length ? active : mirrors;
+        if (!pool.length) return { domain: '', name: engineName };
+
+        const total = pool.reduce((sum, e) => sum + Number(e.weight || 1), 0);
+        if (!(total > 0)) return { domain: pool[0].domain, name: pool[0].name };
 
         const rand = Math.random() * total;
         let cumulative = 0;
-        for (const engine of pool) {
-          cumulative += Number(engine.weight);
+        for (const item of pool) {
+          cumulative += Number(item.weight || 1);
           if (rand < cumulative) {
-            return engine.domain;
+            return { domain: item.domain, name: item.name };
           }
         }
-        return pool[pool.length - 1].domain;
+        return { domain: pool[pool.length - 1].domain, name: pool[pool.length - 1].name };
       }
 
-      /**
-       * Convert target domain and query to standard Z-Library search route:
-       * Format: https://{domain}/s/{encodeURIComponent(query)}
-       */
-      function buildSearchUrl(baseDomain, query) {
-        const normalizedDomain = baseDomain.replace(/\/+$/, '');
-        return `${normalizedDomain}/s/${encodeURIComponent(query)}`;
+      function getDistinctEngines() {
+        const map = new Map();
+        for (const item of SEARCH_ENGINE_CONFIGS) {
+          const name = String(item.name || '').trim() || '通用';
+          if (!map.has(name)) {
+            map.set(name, {
+              name: name,
+              icon: resolveEngineIcon(name, item.domain),
+              mirrors: []
+            });
+          }
+          map.get(name).mirrors.push(item);
+        }
+        return Array.from(map.values());
+      }
+
+      function updateActiveEngineUI() {
+        const engines = getDistinctEngines();
+        if (!engines.length) return;
+
+        let active = engines.find((e) => e.name.toLowerCase() === currentEngineName.toLowerCase());
+        if (!active) {
+          active = engines[0];
+          currentEngineName = active.name;
+        }
+
+        const activeIconEl = document.getElementById('engine-active-icon');
+        const engineBtn = document.getElementById('search-engine-btn');
+        if (activeIconEl) {
+          activeIconEl.src = active.icon;
+          activeIconEl.alt = active.name;
+        }
+        if (engineBtn) {
+          engineBtn.setAttribute('title', '当前搜索引擎：' + active.name + '（点击切换）');
+          engineBtn.setAttribute('aria-label', '当前搜索引擎：' + active.name + '，点击切换');
+        }
+
+        const items = document.querySelectorAll('.engine-dropdown-item');
+        items.forEach((item) => {
+          const name = item.dataset.engineName;
+          const isSelected = name && name.toLowerCase() === currentEngineName.toLowerCase();
+          item.classList.toggle('is-selected', isSelected);
+          item.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+        });
+
+        try {
+          localStorage.setItem('bxks_active_engine', currentEngineName);
+        } catch (e) {}
+      }
+
+      function renderEngineDropdown() {
+        const listEl = document.getElementById('engine-dropdown-list');
+        if (!listEl) return;
+
+        const engines = getDistinctEngines();
+        const frag = document.createDocumentFragment();
+
+        engines.forEach((eng) => {
+          const li = document.createElement('li');
+          li.className = 'engine-dropdown-item';
+          li.setAttribute('role', 'option');
+          li.dataset.engineName = eng.name;
+
+          const isSelected = eng.name.toLowerCase() === currentEngineName.toLowerCase();
+          if (isSelected) li.classList.add('is-selected');
+          li.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+
+          const img = document.createElement('img');
+          img.className = 'engine-item-icon';
+          img.src = eng.icon;
+          img.alt = '';
+          img.setAttribute('aria-hidden', 'true');
+
+          const nameSpan = document.createElement('span');
+          nameSpan.className = 'engine-item-name';
+          nameSpan.textContent = eng.name;
+
+          const checkSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          checkSvg.setAttribute('class', 'engine-item-check');
+          checkSvg.setAttribute('viewBox', '0 0 24 24');
+          checkSvg.setAttribute('fill', 'none');
+          checkSvg.setAttribute('stroke', 'currentColor');
+          checkSvg.setAttribute('stroke-width', '2.5');
+          checkSvg.setAttribute('stroke-linecap', 'round');
+          checkSvg.setAttribute('stroke-linejoin', 'round');
+          const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+          polyline.setAttribute('points', '20 6 9 17 4 12');
+          checkSvg.appendChild(polyline);
+
+          li.appendChild(img);
+          li.appendChild(nameSpan);
+          li.appendChild(checkSvg);
+
+          li.addEventListener('click', (e) => {
+            e.stopPropagation();
+            currentEngineName = eng.name;
+            updateActiveEngineUI();
+            closeEngineDropdown();
+            if (searchInput) searchInput.focus();
+          });
+
+          frag.appendChild(li);
+        });
+
+        listEl.replaceChildren(frag);
       }
 
       // DOM Elements
@@ -1687,6 +2067,50 @@
       const coverImageArea = document.getElementById('cover-image-area');
       const coverFooterStage = document.getElementById('cover-footer-stage');
       const spineTitle = document.getElementById('spine-title');
+      const searchEngineSelector = document.getElementById('search-engine-selector');
+      const searchEngineBtn = document.getElementById('search-engine-btn');
+
+      function openEngineDropdown() {
+        if (!searchEngineSelector) return;
+        searchEngineSelector.classList.add('is-open');
+        if (searchEngineBtn) searchEngineBtn.setAttribute('aria-expanded', 'true');
+      }
+
+      function closeEngineDropdown() {
+        if (!searchEngineSelector) return;
+        searchEngineSelector.classList.remove('is-open');
+        if (searchEngineBtn) searchEngineBtn.setAttribute('aria-expanded', 'false');
+      }
+
+      function toggleEngineDropdown() {
+        if (!searchEngineSelector) return;
+        if (searchEngineSelector.classList.contains('is-open')) {
+          closeEngineDropdown();
+        } else {
+          openEngineDropdown();
+        }
+      }
+
+      if (searchEngineBtn) {
+        searchEngineBtn.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          toggleEngineDropdown();
+        });
+      }
+
+      document.addEventListener('click', (event) => {
+        if (searchEngineSelector && !searchEngineSelector.contains(event.target)) {
+          closeEngineDropdown();
+        }
+      });
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && searchEngineSelector && searchEngineSelector.classList.contains('is-open')) {
+          closeEngineDropdown();
+          if (searchInput) searchInput.focus();
+        }
+      });
 
       let currentBookIndex = 0;
       let tickerTimer = null;
@@ -1909,9 +2333,9 @@
 
         if (!finalQuery) return;
 
-        const targetEngine = selectSearchEngine();
-        if (!targetEngine) return;
-        const searchUrl = buildSearchUrl(targetEngine, finalQuery);
+        const selection = selectEngineMirror(currentEngineName);
+        if (!selection || !selection.domain) return;
+        const searchUrl = buildSearchUrl(selection.name || currentEngineName, selection.domain, finalQuery);
 
         // Force open in new tab via native link trigger
         const link = document.createElement('a');
@@ -2389,21 +2813,37 @@
       function applySearchEngineData(engines) {
         const configured = (Array.isArray(engines) ? engines : [])
           .filter((engine) => engine && engine.domain)
-          .map((engine) => ({
-            domain: normalizeMirrorUrl(engine.domain),
-            weight: Number(engine.weight),
-            enabled: engine.enabled !== false
-          }))
+          .map((engine) => {
+            let name = String(engine.name || '').trim();
+            const domain = normalizeMirrorUrl(engine.domain);
+            if (!name) {
+              const d = domain.toLowerCase();
+              if (d.includes('anna')) name = 'Anna’s Archive';
+              else if (d.includes('libgen')) name = 'Libgen';
+              else if (d.includes('bookracy')) name = 'Bookracy';
+              else if (d.includes('welib')) name = 'WeLib';
+              else name = 'Z-Library';
+            }
+            return {
+              name: name,
+              domain: domain,
+              weight: Number(engine.weight) >= 0 ? Number(engine.weight) : 25,
+              enabled: engine.enabled !== false
+            };
+          })
           .filter((engine) => engine.domain);
 
         // Nothing usable in the JSON: keep the built-in list so search never dies.
         if (!configured.length) return;
 
-        const usable = configured.filter((engine) => engine.enabled && engine.weight > 0);
-        // If every engine is disabled or zero-weighted, fall back to the configured
-        // order rather than resurrecting domains the operator removed from the file.
-        SEARCH_ENGINES = usable.length ? usable : configured;
+        SEARCH_ENGINE_CONFIGS = configured;
+        renderEngineDropdown();
+        updateActiveEngineUI();
       }
+
+      // Initial render with built-in configurations
+      renderEngineDropdown();
+      updateActiveEngineUI();
 
       fetch(MIRROR_DATA_URL, { cache: 'no-cache' })
         .then((res) => (res.ok ? res.json() : Promise.reject(new Error('HTTP ' + res.status))))

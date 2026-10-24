@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-24T13:54:49Z",
+  "updatedAt": "2026-10-24T14:45:00Z",
   "dropdown": {
     "title": "影子图书馆网址列表",
     "tip": "点击访问"
@@ -69,19 +69,70 @@
   ],
   "searchEngines": [
     {
+      "name": "Anna’s Archive",
+      "domain": "https://annas-archive.pk",
+      "weight": 34,
+      "enabled": true
+    },
+    {
+      "name": "Anna’s Archive",
+      "domain": "https://annas-archive.gl",
+      "weight": 33,
+      "enabled": true
+    },
+    {
+      "name": "Anna’s Archive",
+      "domain": "https://annas-archive.gd",
+      "weight": 33,
+      "enabled": true
+    },
+    {
+      "name": "Libgen",
+      "domain": "https://libgen.li",
+      "weight": 40,
+      "enabled": true
+    },
+    {
+      "name": "Libgen",
+      "domain": "https://libgen.la",
+      "weight": 30,
+      "enabled": true
+    },
+    {
+      "name": "Libgen",
+      "domain": "https://libgen.vg",
+      "weight": 30,
+      "enabled": true
+    },
+    {
+      "name": "Bookracy",
+      "domain": "https://bookracy.com",
+      "weight": 100,
+      "enabled": true
+    },
+    {
+      "name": "WeLib",
+      "domain": "https://welib.org",
+      "weight": 100,
+      "enabled": true
+    },
+    {
+      "name": "Z-Library",
       "domain": "https://libb.la",
       "weight": 50,
       "enabled": true
     },
     {
+      "name": "Z-Library",
       "domain": "https://zh.swe101.ru",
       "weight": 25,
       "enabled": true
     },
     {
+      "name": "Z-Library",
       "domain": "https://zh.101isfj.ru",
       "weight": 25,
-      "enabled": true
+      "enabled": false
     }
   ]
 }
