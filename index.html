@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="dark light" />
   <title>不想看书 - 聚合主流「影子图书馆」，你的一站式找书平台</title>
 
@@ -478,9 +478,10 @@
       padding: clamp(24px, 6vh, 64px) 20px clamp(16px, 3vh, 40px);
     }
 
-    /* 移动端键盘弹出时：解锁滚动，预留底部空间让搜索框与页脚保持完全可见 */
+    /* 移动端软键盘激活时：临时允许页面滚动，缩短搜索框与页脚间距至原来1/3 */
     html.kb-open {
-      height: 100% !important;
+      height: auto !important;
+      min-height: 100% !important;
       overflow-y: auto !important;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior-y: auto;
@@ -488,15 +489,19 @@
     html.kb-open body {
       height: auto !important;
       min-height: 100% !important;
-      overflow: visible !important;
+      overflow-y: auto !important;
       overscroll-behavior-y: auto;
     }
     html.kb-open .app-container {
       height: auto !important;
-      min-height: 100% !important;
+      min-height: 0 !important;
       overflow: visible !important;
-      /* 预留底部充足滚动空间，确保虚拟键盘弹出时搜索框与页脚能被完整滚入视口上方 */
-      padding-bottom: var(--kb-padding-bottom, 360px) !important;
+    }
+    html.kb-open .search-section {
+      margin-bottom: calc(clamp(16px, 5vh, 52px) / 3) !important;
+    }
+    html.kb-open .app-footer {
+      margin-top: calc(clamp(8px, 3vh, 32px) / 3) !important;
     }
 
     /* Header Section */
@@ -2003,19 +2008,12 @@
         line-height: inherit;
       }
 
-      /* 移动端软键盘激活时的紧凑微调：收紧各区域间距并适度缩放封面，留出更多可视空间给搜索框与页脚 */
-      html.kb-open .app-container {
-        padding-top: max(20px, calc(env(safe-area-inset-top, 0px) + 12px)) !important;
-      }
-      html.kb-open .header {
-        margin: 0 0 clamp(8px, 2vh, 16px) !important;
-      }
-      html.kb-open .book-display-section {
-        margin: 0 0 clamp(10px, 2.5vh, 18px) !important;
-        --book-scale: 0.72 !important;
-      }
+      /* 移动设备下键盘激活时：缩短页脚到搜索框距离至原来距离的 1/3 */
       html.kb-open .search-section {
-        margin: 0 0 12px !important;
+        margin-bottom: calc(clamp(16px, 3vh, 28px) / 3) !important;
+      }
+      html.kb-open .app-footer {
+        margin-top: 0 !important;
       }
     }
 
@@ -3114,111 +3112,50 @@
       searchInput.addEventListener('input', handleInputChange);
       searchInput.addEventListener('change', handleInputChange);
 
-      // ── 移动端键盘弹出时视口与滚动对齐处理 ────────────────────────────────
-      // 修复 iOS Chrome / Safari 等 WebKit 移动端软键盘弹出时视口遮住搜索框与页脚的问题。
+      // ── 移动端键盘弹出时视口与滚动处理 ────────────────────────────────
+      // 仅对触摸设备生效；桌面端的 focus 不会弹键盘，无需处理。
       const isTouchDevice = () => ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 
+      // 延迟恢复锁定：blur 先于 click 触发，若立即重排布局会导致
+      // 搜索按钮 / 引擎图标的 click 事件坐标偏移而落空。
       let lockScrollTimer = null;
-      let vvListenersAttached = false;
-
-      function updateKeyboardMetrics() {
-        const vv = window.visualViewport;
-        if (!vv) {
-          document.documentElement.style.setProperty('--kb-padding-bottom', '360px');
-          return;
-        }
-        // 计算键盘占据的高度（window.innerHeight 与 visualViewport.height + offsetTop 差值）
-        const keyboardHeight = Math.max(0, window.innerHeight - vv.height - (vv.offsetTop || 0));
-        // 当检测到软键盘弹出（高度 > 60px），预留足够底部内边距，确保可以滚到底部
-        const pad = keyboardHeight > 60 ? Math.max(keyboardHeight + 40, 320) : 360;
-        document.documentElement.style.setProperty('--kb-padding-bottom', pad + 'px');
-      }
-
-      function scrollToSearchAndFooter(isSmooth = false) {
-        if (!searchInput) return;
-
-        updateKeyboardMetrics();
-
-        const searchSection = document.querySelector('.search-section');
-        const footer = document.querySelector('.app-footer');
-        const targetEl = footer || searchSection || searchInput;
-        if (!targetEl) return;
-
-        const vv = window.visualViewport;
-        const currentScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
-
-        if (vv) {
-          const rect = targetEl.getBoundingClientRect();
-          // 目标元素底部在文档坐标系下的位置，加 16px 留白
-          const targetDocBottom = currentScrollY + rect.bottom + 16;
-          // 当前可视区域底部在文档坐标系下的位置
-          const visibleBottom = currentScrollY + (vv.offsetTop || 0) + vv.height;
-
-          // 若目标底部被软键盘或视口边缘遮挡（或接近被遮挡）
-          if (targetDocBottom > visibleBottom - 8) {
-            // 计算需要滚动的目标 Y，让目标底部精准落在可视区域底部上方
-            const desiredY = Math.max(0, targetDocBottom - vv.height - (vv.offsetTop || 0));
-
-            // 安全边界：确保搜索框顶部不会被推到视口上方
-            const searchRect = searchSection ? searchSection.getBoundingClientRect() : null;
-            const maxAllowedY = searchRect ? Math.max(0, currentScrollY + searchRect.top - 12) : desiredY;
-            const finalY = Math.min(desiredY, maxAllowedY);
-
-            window.scrollTo({
-              top: finalY,
-              behavior: isSmooth ? 'smooth' : 'auto'
-            });
-          }
-        } else {
-          // 不支持 visualViewport 的回退处理
-          targetEl.scrollIntoView({ block: 'end', behavior: isSmooth ? 'smooth' : 'auto' });
-        }
-      }
-
-      function handleVvChange() {
-        if (document.documentElement.classList.contains('kb-open')) {
-          scrollToSearchAndFooter(false);
-        }
-      }
-
-      function attachVvListeners() {
-        if (vvListenersAttached || !window.visualViewport) return;
-        window.visualViewport.addEventListener('resize', handleVvChange);
-        window.visualViewport.addEventListener('scroll', handleVvChange);
-        vvListenersAttached = true;
-      }
-
-      function detachVvListeners() {
-        if (!vvListenersAttached || !window.visualViewport) return;
-        window.visualViewport.removeEventListener('resize', handleVvChange);
-        window.visualViewport.removeEventListener('scroll', handleVvChange);
-        vvListenersAttached = false;
-      }
+      let unlockScrollTimer = null;
 
       function lockScroll() {
         clearTimeout(lockScrollTimer);
-        // 延迟恢复锁定：blur 先于 click 触发，若立即重排布局会导致
-        // 搜索按钮 / 引擎图标的 click 事件坐标偏移而落空。
+        clearTimeout(unlockScrollTimer);
+
         lockScrollTimer = setTimeout(() => {
           if (document.activeElement === searchInput) return;
-          detachVvListeners();
-          document.documentElement.classList.remove('kb-open');
-          document.documentElement.style.removeProperty('--kb-padding-bottom');
+
+          // 先平滑滚回顶部，动画完成后再恢复 overflow:hidden 锁定单屏
           window.scrollTo({ top: 0, behavior: 'smooth' });
-        }, 180);
+
+          setTimeout(() => {
+            if (document.activeElement !== searchInput) {
+              document.documentElement.classList.remove('kb-open');
+              document.body.style.overflow = '';
+            }
+          }, 240);
+        }, 150);
       }
 
       function unlockScroll() {
         clearTimeout(lockScrollTimer);
-        document.documentElement.classList.add('kb-open');
-        updateKeyboardMetrics();
-        attachVvListeners();
+        clearTimeout(unlockScrollTimer);
 
-        // 软键盘弹出动画通常需要 300~500ms，多阶段触发确保始终居中且完全可见
-        requestAnimationFrame(() => scrollToSearchAndFooter(false));
-        setTimeout(() => scrollToSearchAndFooter(false), 100);
-        setTimeout(() => scrollToSearchAndFooter(false), 280);
-        setTimeout(() => scrollToSearchAndFooter(true), 480);
+        // 立即临时允许页面滚动并缩短页脚与搜索框间距至 1/3
+        document.documentElement.classList.add('kb-open');
+
+        // 等软键盘展开就绪后，平滑滚动至最底部，保持搜索框和页脚完全可见且不卡顿
+        unlockScrollTimer = setTimeout(() => {
+          if (document.activeElement === searchInput || document.documentElement.classList.contains('kb-open')) {
+            window.scrollTo({
+              top: Math.max(document.documentElement.scrollHeight, document.body.scrollHeight),
+              behavior: 'smooth'
+            });
+          }
+        }, 250);
       }
 
       if (searchInput && isTouchDevice()) {
@@ -3226,7 +3163,6 @@
         searchInput.addEventListener('pointerdown', () => {
           clearTimeout(lockScrollTimer);
           document.documentElement.classList.add('kb-open');
-          updateKeyboardMetrics();
         });
         searchInput.addEventListener('focus', unlockScroll);
         searchInput.addEventListener('blur', lockScroll);
