@@ -493,7 +493,7 @@
     /* Header Section */
     .header {
       text-align: center;
-      margin: 0 0 clamp(12px, 3.5vh, 36px);
+      margin: 0 0 clamp(14px, 4vh, 40px);
       max-width: 720px;
       flex-shrink: 0;
       user-select: none;
@@ -974,11 +974,12 @@
       border: none;
       outline: none;
       font-family: inherit;
-      font-size: 0.9rem;
+      font-size: 1rem;      /* ≥16px：防止 iOS Safari 点击时自动缩放页面 */
       font-weight: 600;
       color: var(--fg);
       padding: 0;
       margin: 0;
+      touch-action: manipulation; /* 禁用双击缩放 */
     }
 
     .aggregate-query-input::placeholder {
@@ -1302,6 +1303,7 @@
       padding: 0;
       margin: 0;
       z-index: 2;
+      touch-action: manipulation;
     }
 
     .search-input::-webkit-search-cancel-button,
@@ -1424,7 +1426,7 @@
       justify-content: center;
       perspective: 1200px;
       perspective-origin: 50% 40%;
-      margin: 6px 0 clamp(16px, 4.5vh, 48px);
+      margin: 6px 0 clamp(14px, 4vh, 40px);
       /* 高度随 --book-scale 收缩，确保标题、封面、搜索框与页脚始终在一屏内 */
       width: calc(240px * var(--book-scale, 1));
       height: calc(350px * var(--book-scale, 1));
@@ -1901,7 +1903,7 @@
 
       .header {
         order: 1;
-        margin: 0 0 clamp(16px, 3vh, 24px);
+        margin: 0 0 clamp(16px, 3.5vh, 28px);
         flex-shrink: 0;
         user-select: none;
       }
@@ -1970,7 +1972,7 @@
 
       .book-display-section {
         order: 2;
-        margin: 0 0 clamp(32px, 6vh, 48px);
+        margin: 0 0 clamp(16px, 3.5vh, 28px);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -3092,13 +3094,20 @@
       // 仅对触摸设备生效；桌面端的 focus 不会弹键盘，无需处理。
       const isTouchDevice = () => ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 
+      // 延迟恢复锁定：blur 先于 click 触发，若立即重排布局会导致
+      // 搜索按钮 / 引擎图标的 click 事件坐标偏移而落空。
+      let lockScrollTimer = null;
+
       function lockScroll() {
-        document.documentElement.classList.remove('kb-open');
-        // 确保内联样式也保持 hidden（防止聚合弹窗关闭后被清空）
-        document.body.style.overflow = '';
+        clearTimeout(lockScrollTimer);
+        lockScrollTimer = setTimeout(() => {
+          document.documentElement.classList.remove('kb-open');
+          document.body.style.overflow = '';
+        }, 150);
       }
 
       function unlockScroll() {
+        clearTimeout(lockScrollTimer);
         document.documentElement.classList.add('kb-open');
         // 稍作延迟，等键盘动画完成后再把搜索框滚入视口
         setTimeout(() => {
