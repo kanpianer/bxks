@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="dark light" />
   <title>不想看书 - 聚合主流「影子图书馆」，你的一站式找书平台</title>
 
@@ -910,30 +910,87 @@
     .aggregate-query-badge {
       display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 7px 12px;
+      gap: 8px;
+      padding: 6px 12px;
       background: var(--hover-bg);
       border: 1px solid var(--search-border);
       border-radius: 10px;
       font-size: 0.84rem;
       color: var(--fg-muted);
       margin-bottom: 12px;
-      overflow: hidden;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+    }
+
+    .aggregate-query-badge:focus-within {
+      border-color: var(--search-focus-border);
+      box-shadow: 0 0 0 2px var(--search-focus-ring);
+      background: var(--search-bg);
     }
 
     .aggregate-query-label {
       flex-shrink: 0;
       color: var(--fg-subtle);
-      font-size: 0.8rem;
+      font-size: 0.82rem;
+      font-weight: 500;
+      user-select: none;
+      cursor: text;
     }
 
-    .aggregate-query-text {
+    .aggregate-query-input {
       flex: 1;
+      min-width: 0;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-family: inherit;
+      font-size: 0.9rem;
       font-weight: 600;
       color: var(--fg);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      padding: 0;
+      margin: 0;
+    }
+
+    .aggregate-query-input::placeholder {
+      color: var(--fg-subtle);
+      font-weight: 400;
+      opacity: 0.7;
+    }
+
+    .aggregate-query-clear {
+      width: 20px;
+      height: 20px;
+      padding: 0;
+      background: transparent;
+      border: none;
+      border-radius: 50%;
+      color: var(--fg-subtle);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+    }
+
+    .aggregate-query-badge.has-query .aggregate-query-clear {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .aggregate-query-clear:hover {
+      color: var(--fg);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    [data-theme="light"] .aggregate-query-clear:hover {
+      background: rgba(0, 0, 0, 0.08);
+    }
+
+    .aggregate-query-clear svg {
+      width: 12px;
+      height: 12px;
     }
 
     .aggregate-modal-notice {
@@ -948,6 +1005,10 @@
       line-height: 1.5;
       color: var(--fg-muted);
       margin-bottom: 12px;
+    }
+
+    .aggregate-modal-notice.is-hidden {
+      display: none !important;
     }
 
     .aggregate-notice-icon {
@@ -1790,10 +1851,9 @@
         justify-content: space-between;
         align-items: center;
         padding-top: max(40px, calc(env(safe-area-inset-top, 0px) + 38px));
-        padding-bottom: env(safe-area-inset-bottom, 0px);
+        padding-bottom: 0;
         padding-left: clamp(16px, 4vw, 24px);
         padding-right: clamp(16px, 4vw, 24px);
-        transition: padding-top 0.2s cubic-bezier(0.2, 0.9, 0.3, 1);
       }
 
       .jiakuan-nav-btn {
@@ -1803,7 +1863,6 @@
         padding: 0;
         font-size: 0.84rem;
         gap: 6px;
-        transition: opacity 0.2s ease;
       }
       .jiakuan-icon {
         width: 17px;
@@ -1814,56 +1873,15 @@
         right: 14px;
         width: 32px;
         height: 32px;
-        transition: opacity 0.2s ease;
       }
       .theme-toggle-btn .theme-icon {
         width: 18px;
         height: 18px;
       }
 
-      /* In search-focused mode: hide corner buttons and brand header to maximize viewport room */
-      body.is-search-focused .jiakuan-nav-btn,
-      body.is-search-focused .theme-toggle-btn {
-        opacity: 0;
-        pointer-events: none;
-      }
-
-      body.is-search-focused .header {
-        display: none;
-      }
-
-      /* When keyboard pops up on mobile: anchor footer above keyboard and keep input in view */
-      body.is-search-focused .app-container {
-        justify-content: flex-end;
-        padding-top: max(8px, env(safe-area-inset-top, 0px));
-        padding-bottom: calc(var(--keyboard-inset-bottom, 0px) + max(6px, env(safe-area-inset-bottom, 0px))) !important;
-      }
-
-      body.is-search-focused .book-display-section {
-        flex: 1 1 auto;
-        min-height: 0;
-        height: auto;
-        max-height: calc(var(--vv-height, 100dvh) - 100px);
-        margin-bottom: 6px;
-        display: flex;
-        align-items: flex-end;
-        justify-content: center;
-        overflow: hidden;
-      }
-
-      /* Shorten distance between search box and bottom footer when keyboard is active */
-      body.is-search-focused .search-section {
-        margin-bottom: 8px;
-      }
-
-      body.is-search-focused .app-footer {
-        padding: 0 0 2px 0;
-        margin: 0;
-      }
-
       .header {
         order: 1;
-        margin: 0;
+        margin: 0 0 clamp(8px, 1.8vh, 14px);
         flex-shrink: 0;
         user-select: none;
       }
@@ -1888,30 +1906,13 @@
         -webkit-overflow-scrolling: touch;
       }
 
-      .book-display-section {
-        order: 2;
-        margin: 0;
-        flex-shrink: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        touch-action: none;
-        --book-height: clamp(190px, 38vh, 310px);
-        --book-scale: calc(var(--book-height) / 350px);
-        height: var(--book-height);
-        width: calc(240px * var(--book-scale));
-      }
-
-      .book-stage {
-        transform: scale(var(--book-scale));
-        transform-origin: center center;
-      }
-
       .search-section {
-        order: 3;
+        order: 2;
         width: 100%;
-        margin: 0;
+        margin: 0 0 clamp(8px, 1.8vh, 16px);
         flex-shrink: 0;
+        position: relative;
+        z-index: 40;
       }
 
       .search-form {
@@ -1937,30 +1938,34 @@
       }
 
       .engine-dropdown {
-        top: auto;
-        bottom: calc(100% + 8px);
+        top: calc(100% + 10px);
+        bottom: auto;
         left: 5px;
-        max-height: min(280px, calc(var(--vv-height, 100dvh) - 86px));
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        transform: translateY(6px) scale(0.98);
-        padding: 5px;
+        max-height: min(320px, calc(100dvh - 180px));
+        transform: translateY(-6px) scale(0.98);
       }
       .search-engine-selector.is-open .engine-dropdown {
         transform: translateY(0) scale(1);
       }
-      .engine-dropdown-header {
-        padding: 4px 8px 5px;
-        margin-bottom: 3px;
+
+      .book-display-section {
+        order: 3;
+        margin: 0;
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        touch-action: none;
+        --book-height: clamp(180px, 35vh, 290px);
+        --book-scale: calc(var(--book-height) / 350px);
+        height: var(--book-height);
+        width: calc(240px * var(--book-scale));
       }
-      .engine-dropdown-item {
-        padding: 6px 9px;
-        gap: 8px;
-        font-size: 0.82rem;
-      }
-      .engine-dropdown-item .engine-item-icon {
-        width: 18px;
-        height: 18px;
+
+      .book-stage {
+        transform: scale(var(--book-scale));
+        transform-origin: center center;
       }
 
       .app-footer {
@@ -1969,7 +1974,7 @@
         flex-shrink: 0;
         font-size: clamp(0.78rem, 2.5vw, 0.86rem);
         line-height: 1.4;
-        padding: 0 0 1em 0;
+        padding: 0 0 max(8px, env(safe-area-inset-bottom, 0px));
       }
 
       .footer-links {
@@ -1982,11 +1987,7 @@
     @media (max-width: 480px) {
       .app-container {
         padding-top: max(38px, calc(env(safe-area-inset-top, 0px) + 36px));
-        padding-bottom: env(safe-area-inset-bottom, 0px);
-      }
-      body.is-search-focused .app-container {
-        padding-top: max(6px, env(safe-area-inset-top, 0px));
-        padding-bottom: calc(var(--keyboard-inset-bottom, 0px) + max(4px, env(safe-area-inset-bottom, 0px))) !important;
+        padding-bottom: 0;
       }
       .engine-dropdown {
         left: 1px;
@@ -2394,11 +2395,27 @@
 
       <div class="aggregate-modal-body">
         <div class="aggregate-query-badge" id="aggregate-query-badge">
-          <span class="aggregate-query-label">检索词：</span>
-          <span class="aggregate-query-text" id="aggregate-query-text"></span>
+          <label class="aggregate-query-label" for="aggregate-query-input">检索词：</label>
+          <input
+            type="text"
+            id="aggregate-query-input"
+            class="aggregate-query-input"
+            value=""
+            placeholder="请输入检索词"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+          />
+          <button type="button" class="aggregate-query-clear" id="aggregate-query-clear" aria-label="清空检索词" title="清空检索词">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
         </div>
 
-        <div class="aggregate-modal-notice">
+        <div class="aggregate-modal-notice" id="aggregate-modal-notice">
           <div class="aggregate-notice-icon" aria-hidden="true">ℹ️</div>
           <p class="aggregate-notice-text">
             聚合搜索将在新标签页中打开以下 <strong><span id="aggregate-engine-count">5</span></strong> 个搜索引擎。由于浏览器安全策略限制，需要在浏览器地址栏提示中选择<strong>「始终允许弹出式窗口」</strong>，或直接点击下方搜索引擎单独打开。
@@ -2782,14 +2799,12 @@
         if (!searchEngineSelector) return;
         searchEngineSelector.classList.add('is-open');
         if (searchEngineBtn) searchEngineBtn.setAttribute('aria-expanded', 'true');
-        window.dispatchEvent(new Event('engineDropdownChange'));
       }
 
       function closeEngineDropdown() {
         if (!searchEngineSelector) return;
         searchEngineSelector.classList.remove('is-open');
         if (searchEngineBtn) searchEngineBtn.setAttribute('aria-expanded', 'false');
-        window.dispatchEvent(new Event('engineDropdownChange'));
       }
 
       function toggleEngineDropdown() {
@@ -2826,11 +2841,6 @@
       }
 
       if (searchEngineBtn) {
-        searchEngineBtn.addEventListener('pointerdown', (event) => {
-          if (document.activeElement === searchInput) {
-            event.preventDefault();
-          }
-        });
         searchEngineBtn.addEventListener('click', (event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -2854,8 +2864,6 @@
           if (searchEngineSelector && searchEngineSelector.classList.contains('is-open')) {
             closeEngineDropdown();
             if (searchInput) searchInput.focus();
-          } else if (searchInput && document.activeElement === searchInput) {
-            searchInput.blur();
           }
         }
       });
@@ -3181,8 +3189,6 @@
 
         if (!finalQuery) return;
 
-        if (searchInput) searchInput.blur();
-
         // If "聚合搜索" is selected: open aggregate search prompt modal in center of page
         if (currentEngineName === '聚合搜索') {
           openAggregateModal(finalQuery);
@@ -3209,21 +3215,50 @@
       const aggregateModalBackdrop = document.getElementById('aggregate-modal-backdrop');
       const aggregateModalCloseBtn = document.getElementById('aggregate-modal-close');
       const aggregateBtnPrimary = document.getElementById('aggregate-btn-primary');
-      const aggregateQueryText = document.getElementById('aggregate-query-text');
+      const aggregateQueryBadge = document.getElementById('aggregate-query-badge');
+      const aggregateQueryInput = document.getElementById('aggregate-query-input');
+      const aggregateQueryClear = document.getElementById('aggregate-query-clear');
+      const aggregateModalNotice = document.getElementById('aggregate-modal-notice');
       const aggregateEngineCount = document.getElementById('aggregate-engine-count');
       const aggregateEngineList = document.getElementById('aggregate-engine-list');
       const aggregateBlockedWarning = document.getElementById('aggregate-blocked-warning');
 
+      const AGGREGATE_NOTICE_SHOWN_KEY = 'bxks_aggregate_notice_shown_count';
       let currentAggregateAllocations = [];
       let currentAggregateQuery = '';
 
       function openAggregateModal(query) {
         if (!aggregateModalBackdrop) return;
-        if (searchInput) searchInput.blur();
-        currentAggregateQuery = query;
+        currentAggregateQuery = query || '';
 
-        if (aggregateQueryText) {
-          aggregateQueryText.textContent = query;
+        // Notice: Only show to user twice, then automatically disappear (unless browser data is cleared)
+        let noticeShownCount = 0;
+        try {
+          noticeShownCount = parseInt(localStorage.getItem(AGGREGATE_NOTICE_SHOWN_KEY) || '0', 10);
+          if (isNaN(noticeShownCount)) noticeShownCount = 0;
+        } catch (e) {
+          noticeShownCount = 0;
+        }
+
+        if (aggregateModalNotice) {
+          if (noticeShownCount < 2) {
+            aggregateModalNotice.classList.remove('is-hidden');
+            aggregateModalNotice.style.display = 'flex';
+            noticeShownCount++;
+            try {
+              localStorage.setItem(AGGREGATE_NOTICE_SHOWN_KEY, String(noticeShownCount));
+            } catch (e) {}
+          } else {
+            aggregateModalNotice.classList.add('is-hidden');
+            aggregateModalNotice.style.display = 'none';
+          }
+        }
+
+        if (aggregateQueryInput) {
+          aggregateQueryInput.value = currentAggregateQuery;
+        }
+        if (aggregateQueryBadge) {
+          aggregateQueryBadge.classList.toggle('has-query', !!currentAggregateQuery.trim());
         }
 
         if (aggregateBlockedWarning) {
@@ -3234,24 +3269,25 @@
         // Each search engine only gets ONE mirror URL based on weight allocation
         currentAggregateAllocations = engines.map((eng) => {
           const selection = selectEngineMirror(eng.name);
-          const searchUrl = selection && selection.domain
-            ? buildSearchUrl(selection.name || eng.name, selection.domain, query)
+          const domain = selection ? selection.domain : '';
+          const searchUrl = domain && currentAggregateQuery.trim()
+            ? buildSearchUrl(selection.name || eng.name, domain, currentAggregateQuery.trim())
             : '';
           let displayDomain = '';
           try {
-            displayDomain = new URL(selection.domain).hostname;
+            displayDomain = new URL(domain).hostname;
           } catch (e) {
-            displayDomain = selection ? selection.domain : '';
+            displayDomain = domain;
           }
           return {
             name: eng.name,
             icon: eng.icon,
-            domain: selection ? selection.domain : '',
+            domain: domain,
             displayDomain: displayDomain,
             searchUrl: searchUrl,
             opened: false
           };
-        }).filter((item) => item.searchUrl);
+        }).filter((item) => item.domain);
 
         if (aggregateEngineCount) {
           aggregateEngineCount.textContent = currentAggregateAllocations.length;
@@ -3262,6 +3298,13 @@
         aggregateModalBackdrop.classList.add('is-visible');
         aggregateModalBackdrop.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
+
+        setTimeout(() => {
+          if (aggregateQueryInput) {
+            aggregateQueryInput.focus();
+            aggregateQueryInput.select();
+          }
+        }, 60);
       }
 
       function closeAggregateModal() {
@@ -3271,17 +3314,52 @@
         document.body.style.overflow = '';
       }
 
+      function updateAggregateSearchQuery(newQuery) {
+        currentAggregateQuery = newQuery;
+        const trimmed = newQuery.trim();
+
+        if (aggregateQueryBadge) {
+          aggregateQueryBadge.classList.toggle('has-query', !!trimmed);
+        }
+
+        // Recompute search URL for all engines with the modified query
+        currentAggregateAllocations.forEach((item) => {
+          item.searchUrl = (item.domain && trimmed)
+            ? buildSearchUrl(item.name, item.domain, trimmed)
+            : '';
+          item.opened = false;
+        });
+
+        if (aggregateBlockedWarning) {
+          aggregateBlockedWarning.style.display = 'none';
+        }
+
+        renderAggregateEngineList();
+
+        // Keep main page search input in sync
+        if (searchInput && trimmed) {
+          searchInput.value = newQuery;
+          if (searchContainer) {
+            searchContainer.classList.add('has-value');
+          }
+        }
+      }
+
       function renderAggregateEngineList() {
         if (!aggregateEngineList) return;
         const frag = document.createDocumentFragment();
+        const displayQuery = currentAggregateQuery.trim();
 
         currentAggregateAllocations.forEach((item, index) => {
           const card = document.createElement('div');
           card.className = 'aggregate-engine-item' + (item.opened ? ' is-opened' : '');
           card.setAttribute('role', 'button');
           card.setAttribute('tabindex', '0');
-          card.setAttribute('aria-label', `使用 ${item.name} 搜索「${currentAggregateQuery}」`);
-          card.title = `点击使用 ${item.name} 搜索「${currentAggregateQuery}」`;
+          const labelText = displayQuery
+            ? `使用 ${item.name} 搜索「${displayQuery}」`
+            : `使用 ${item.name} 搜索`;
+          card.setAttribute('aria-label', labelText);
+          card.title = `点击${labelText}`;
           card.dataset.engineIndex = String(index);
 
           // Icon
@@ -3335,9 +3413,17 @@
       }
 
       function openSingleAggregateEngine(index) {
-        const item = currentAggregateAllocations[index];
-        if (!item || !item.searchUrl) return;
+        const query = currentAggregateQuery.trim();
+        if (!query) {
+          showSearchToast('请输入检索词');
+          if (aggregateQueryInput) aggregateQueryInput.focus();
+          return;
+        }
 
+        const item = currentAggregateAllocations[index];
+        if (!item || !item.domain) return;
+
+        item.searchUrl = buildSearchUrl(item.name, item.domain, query);
         item.opened = true;
         renderAggregateEngineList();
 
@@ -3350,10 +3436,18 @@
       }
 
       function openAllAggregateEngines() {
+        const query = currentAggregateQuery.trim();
+        if (!query) {
+          showSearchToast('请输入检索词');
+          if (aggregateQueryInput) aggregateQueryInput.focus();
+          return;
+        }
+
         if (!currentAggregateAllocations.length) return;
         let blockedCount = 0;
 
-        currentAggregateAllocations.forEach((item, index) => {
+        currentAggregateAllocations.forEach((item) => {
+          item.searchUrl = buildSearchUrl(item.name, item.domain, query);
           try {
             const win = window.open(item.searchUrl, '_blank');
             if (!win) {
@@ -3379,6 +3473,33 @@
           closeAggregateModal();
           showSearchToast('已成功在新标签页打开所有搜索引擎');
         }
+      }
+
+      if (aggregateQueryInput) {
+        aggregateQueryInput.addEventListener('input', (e) => {
+          updateAggregateSearchQuery(e.target.value);
+        });
+
+        aggregateQueryInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            if (!currentAggregateQuery.trim()) {
+              showSearchToast('请输入检索词');
+              return;
+            }
+            openAllAggregateEngines();
+          }
+        });
+      }
+
+      if (aggregateQueryClear) {
+        aggregateQueryClear.addEventListener('click', () => {
+          if (aggregateQueryInput) {
+            aggregateQueryInput.value = '';
+            updateAggregateSearchQuery('');
+            aggregateQueryInput.focus();
+          }
+        });
       }
 
       if (aggregateModalCloseBtn) {
@@ -3949,14 +4070,8 @@
         }
       })();
 
-      // Maintain CSS variables, mobile keyboard adaptive insets, and prevent rubber-band scrolling
+      // Maintain CSS variables and prevent mobile pull-to-refresh & rubber-band scrolling
       (function initMobileViewportShield() {
-        let isSearchFocused = false;
-        const appContainer = document.querySelector('.app-container');
-        const searchInput = document.getElementById('search-input');
-        const searchEngineSelector = document.getElementById('search-engine-selector');
-
-        // Prevent pull-to-refresh & rubber-band scrolling on mobile background
         document.addEventListener(
           'touchmove',
           function (e) {
@@ -3969,18 +4084,6 @@
           },
           { passive: false }
         );
-
-        // Tapping outside search form / footer / dropdown / modal dismisses keyboard smoothly
-        document.addEventListener('touchstart', (e) => {
-          if (document.body.classList.contains('is-search-focused')) {
-            if (!e.target.closest('#search-form, #engine-dropdown, .app-footer, .aggregate-modal-card')) {
-              if (searchInput && document.activeElement === searchInput) {
-                searchInput.blur();
-              }
-              closeEngineDropdown();
-            }
-          }
-        }, { passive: true });
 
         function updateMobileLayoutVars() {
           if (window.innerWidth <= 640) {
@@ -3995,81 +4098,9 @@
           }
         }
 
-        function updateViewportInsets() {
-          if (window.innerWidth > 640) {
-            document.documentElement.style.removeProperty('--keyboard-inset-bottom');
-            document.documentElement.style.removeProperty('--vv-height');
-            document.body.classList.remove('is-search-focused');
-            return;
-          }
-
-          const vv = window.visualViewport;
-          const vvHeight = vv ? vv.height : window.innerHeight;
-          const offsetTop = vv ? (vv.offsetTop || 0) : 0;
-
-          document.documentElement.style.setProperty('--vv-height', `${vvHeight}px`);
-
-          const isDropdownOpen = !!(searchEngineSelector && searchEngineSelector.classList.contains('is-open'));
-          const isInputFocused = document.activeElement === searchInput;
-
-          if (!isInputFocused && !isDropdownOpen) {
-            document.documentElement.style.removeProperty('--keyboard-inset-bottom');
-            document.body.classList.remove('is-search-focused');
-            return;
-          }
-
-          document.body.classList.add('is-search-focused');
-
-          // Calculate exact layout height obscured by keyboard and/or browser bottom toolbars:
-          const obscuredBottom = Math.max(0, Math.round(window.innerHeight - vvHeight - offsetTop));
-          document.documentElement.style.setProperty('--keyboard-inset-bottom', `${obscuredBottom}px`);
-        }
-
-        if (searchInput) {
-          searchInput.addEventListener('focus', () => {
-            isSearchFocused = true;
-            document.body.classList.add('is-search-focused');
-            updateViewportInsets();
-          });
-
-          searchInput.addEventListener('blur', () => {
-            isSearchFocused = false;
-            // Delay slightly to check if focus moved to engine dropdown or selector
-            setTimeout(() => {
-              const isDropdownOpen = !!(searchEngineSelector && searchEngineSelector.classList.contains('is-open'));
-              if (document.activeElement !== searchInput && !isDropdownOpen) {
-                document.body.classList.remove('is-search-focused');
-                updateViewportInsets();
-                updateMobileLayoutVars();
-                if (window.innerWidth <= 640 && window.scrollY !== 0) {
-                  window.scrollTo(0, 0);
-                }
-              }
-            }, 80);
-          });
-        }
-
-        if (window.visualViewport) {
-          window.visualViewport.addEventListener('resize', updateViewportInsets, { passive: true });
-          window.visualViewport.addEventListener('scroll', updateViewportInsets, { passive: true });
-        }
-
-        window.addEventListener('resize', () => {
-          updateMobileLayoutVars();
-          updateViewportInsets();
-        }, { passive: true });
-
-        window.addEventListener('orientationchange', () => {
-          setTimeout(() => {
-            updateMobileLayoutVars();
-            updateViewportInsets();
-          }, 80);
-        }, { passive: true });
-
-        window.addEventListener('engineDropdownChange', updateViewportInsets, { passive: true });
-
+        window.addEventListener('resize', updateMobileLayoutVars, { passive: true });
+        window.addEventListener('orientationchange', updateMobileLayoutVars, { passive: true });
         updateMobileLayoutVars();
-        updateViewportInsets();
       })();
     })();
   </script>
