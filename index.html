@@ -59,6 +59,10 @@
       --book-paper: #d4d4d8;
       
       --font-family: 'LXGW WenKai', 'LXGW WenKai TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+      /* 立体书封面尺寸（由脚本按视口同步，作为无脚本时的回退值） */
+      --book-height: 350px;
+      --book-scale: 1;
     }
 
     [data-theme="light"] {
@@ -454,21 +458,23 @@
       display: block;
     }
 
-    /* Layout Container */
+    /* Layout Container: 标题 / 封面 / 搜索 / 页脚 垂直均分，避免封面上下留白过多 */
     .app-container {
       position: relative;
       z-index: 1;
       min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: clamp(36px, 7vh, 72px) 20px 48px;
+      justify-content: space-evenly;
+      padding: clamp(24px, 3.5vh, 44px) 20px;
     }
 
     /* Header Section */
     .header {
       text-align: center;
-      margin-bottom: clamp(20px, 4vh, 36px);
+      margin: 0 0 10px;
       max-width: 720px;
       user-select: none;
     }
@@ -516,9 +522,7 @@
     .search-section {
       width: 100%;
       max-width: 640px;
-      margin-inline: auto;
-      margin-top: clamp(56px, 7vh, 72px);
-      margin-bottom: clamp(24px, 4vh, 40px);
+      margin: 16px auto 10px;
       transition: width 0.3s ease;
       position: relative;
       z-index: 40;
@@ -1394,7 +1398,12 @@
       justify-content: center;
       perspective: 1200px;
       perspective-origin: 50% 40%;
-      margin-top: 10px;
+      margin: 0;
+      /* 尺寸随视口缩放：高度由 --book-height 决定，宽度按 240:350 舞台比例 */
+      height: var(--book-height);
+      width: calc(var(--book-height) * 240 / 350);
+      flex: 0 1 auto;
+      min-height: 0;
       cursor: grab;
       user-select: none;
       -webkit-user-select: none;
@@ -1412,6 +1421,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      transform: scale(var(--book-scale, 1));
+      transform-origin: center center;
       transform-style: preserve-3d;
       -webkit-transform-style: preserve-3d;
     }
@@ -1794,7 +1805,7 @@
 
     /* Footer Related Links */
     .app-footer {
-      margin-top: clamp(32px, 6vh, 52px);
+      margin: 0;
       text-align: center;
       z-index: 2;
     }
@@ -1840,6 +1851,12 @@
         -webkit-overflow-scrolling: auto;
       }
 
+      /* 无脚本回退：按屏宽/屏高取较小值，保证封面既饱满又不溢出（脚本会在 :root 上覆盖） */
+      :root {
+        --book-height: clamp(150px, min(113.75vw, 54vh, 100dvh - 235px), 500px);
+        --book-scale: 0.74;
+      }
+
       .app-container {
         height: 100%;
         height: 100dvh;
@@ -1849,10 +1866,10 @@
         overflow: hidden;
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
+        justify-content: space-evenly;
         align-items: center;
-        padding-top: max(40px, calc(env(safe-area-inset-top, 0px) + 38px));
-        padding-bottom: 0;
+        padding-top: max(34px, calc(env(safe-area-inset-top, 0px) + 30px));
+        padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
         padding-left: clamp(16px, 4vw, 24px);
         padding-right: clamp(16px, 4vw, 24px);
       }
@@ -1882,7 +1899,7 @@
 
       .header {
         order: 1;
-        margin: 0 0 clamp(8px, 1.8vh, 14px);
+        margin: 0 0 6px;
         flex-shrink: 0;
         user-select: none;
       }
@@ -1910,7 +1927,7 @@
       .search-section {
         order: 3;
         width: 100%;
-        margin: clamp(4px, 1.2vh, 10px) 0 clamp(8px, 1.8vh, 16px);
+        margin: 8px 0;
         flex-shrink: 0;
         position: relative;
         z-index: 40;
@@ -1952,16 +1969,12 @@
       .book-display-section {
         order: 2;
         margin: 0;
-        flex: 1 1 auto;
+        flex: 0 1 auto;
         min-height: 0;
         display: flex;
         align-items: center;
         justify-content: center;
         touch-action: none;
-        --book-height: clamp(180px, 35vh, 290px);
-        --book-scale: calc(var(--book-height) / 350px);
-        height: var(--book-height);
-        width: calc(240px * var(--book-scale));
       }
 
       .book-stage {
@@ -1975,7 +1988,7 @@
         flex-shrink: 0;
         font-size: clamp(0.78rem, 2.5vw, 0.86rem);
         line-height: 1.4;
-        padding: 0 0 max(8px, env(safe-area-inset-bottom, 0px));
+        padding: 0;
       }
 
       .footer-links {
@@ -1987,8 +2000,7 @@
 
     @media (max-width: 480px) {
       .app-container {
-        padding-top: max(38px, calc(env(safe-area-inset-top, 0px) + 36px));
-        padding-bottom: 0;
+        padding-top: max(32px, calc(env(safe-area-inset-top, 0px) + 28px));
       }
       .engine-dropdown {
         left: 1px;
@@ -4089,22 +4101,30 @@
           { passive: false }
         );
 
-        function updateMobileLayoutVars() {
-          if (window.innerWidth <= 640) {
-            const vh = window.innerHeight;
-            const bookHeight = Math.max(190, Math.min(310, vh * 0.38));
-            const scale = (bookHeight / 350).toFixed(4);
-            document.documentElement.style.setProperty('--book-height', bookHeight.toFixed(1) + 'px');
-            document.documentElement.style.setProperty('--book-scale', scale);
-          } else {
-            document.documentElement.style.removeProperty('--book-height');
-            document.documentElement.style.removeProperty('--book-scale');
-          }
+        // 立体书封面按视口等比缩放：
+        // - 移动端受屏宽限制（约 78% 宽），同时为键盘/小屏预留高度；
+        // - 桌面端按屏高取约 53%，让封面饱满、上下留白均匀。
+        function updateBookLayoutVars() {
+          const vw = window.innerWidth;
+          const vh = window.innerHeight;
+          const isMobile = vw <= 640;
+
+          let bookHeight = isMobile
+            ? Math.min(vw * 1.1375, vh * 0.54, vh - 235, 500)
+            : Math.min(vh * 0.53, vh - 300, 680);
+          bookHeight = Math.max(isMobile ? 150 : 300, Math.round(bookHeight));
+
+          document.documentElement.style.setProperty('--book-height', bookHeight + 'px');
+          document.documentElement.style.setProperty('--book-scale', (bookHeight / 350).toFixed(4));
         }
 
-        window.addEventListener('resize', updateMobileLayoutVars, { passive: true });
-        window.addEventListener('orientationchange', updateMobileLayoutVars, { passive: true });
-        updateMobileLayoutVars();
+        window.addEventListener('resize', updateBookLayoutVars, { passive: true });
+        window.addEventListener('orientationchange', updateBookLayoutVars, { passive: true });
+        if (window.visualViewport) {
+          window.visualViewport.addEventListener('resize', updateBookLayoutVars, { passive: true });
+        }
+        updateBookLayoutVars();
+        window.addEventListener('load', updateBookLayoutVars, { once: true });
       })();
     })();
   </script>
