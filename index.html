@@ -478,6 +478,18 @@
       padding: clamp(24px, 6vh, 64px) 20px clamp(16px, 3vh, 40px);
     }
 
+    /* 移动端键盘弹出时：解锁滚动，让搜索框保持可见 */
+    html.kb-open,
+    html.kb-open body {
+      overflow: auto !important;
+      overscroll-behavior: auto;
+    }
+    html.kb-open .app-container {
+      height: auto;
+      min-height: 100dvh;
+      overflow: visible;
+    }
+
     /* Header Section */
     .header {
       text-align: center;
@@ -3075,6 +3087,32 @@
 
       searchInput.addEventListener('input', handleInputChange);
       searchInput.addEventListener('change', handleInputChange);
+
+      // ── 移动端键盘弹出时解锁页面滚动 ──────────────────────────────────
+      // 仅对触摸设备生效；桌面端的 focus 不会弹键盘，无需处理。
+      const isTouchDevice = () => ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+
+      function lockScroll() {
+        document.documentElement.classList.remove('kb-open');
+        // 确保内联样式也保持 hidden（防止聚合弹窗关闭后被清空）
+        document.body.style.overflow = '';
+      }
+
+      function unlockScroll() {
+        document.documentElement.classList.add('kb-open');
+        // 稍作延迟，等键盘动画完成后再把搜索框滚入视口
+        setTimeout(() => {
+          if (searchInput) {
+            searchInput.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          }
+        }, 300);
+      }
+
+      if (searchInput && isTouchDevice()) {
+        searchInput.addEventListener('focus', unlockScroll);
+        searchInput.addEventListener('blur', lockScroll);
+      }
+      // ────────────────────────────────────────────────────────────────────
 
       // Manage ticker lifecycle on page visibility
       document.addEventListener('visibilitychange', () => {
