@@ -478,30 +478,38 @@
       padding: clamp(24px, 6vh, 64px) 20px clamp(16px, 3vh, 40px);
     }
 
-    /* 移动端软键盘激活时：临时允许页面滚动，缩短搜索框与页脚间距至原来1/3 */
-    html.kb-open {
-      height: auto !important;
-      min-height: 100% !important;
-      overflow-y: auto !important;
-      -webkit-overflow-scrolling: touch;
-      overscroll-behavior-y: auto;
-    }
+    /* 移动端键盘弹出时：临时允许滚动，缩短页脚与视口底边距离至1/3并平滑滚动到底部 */
+    html.kb-open,
     html.kb-open body {
-      height: auto !important;
-      min-height: 100% !important;
       overflow-y: auto !important;
-      overscroll-behavior-y: auto;
+      overflow-x: hidden !important;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      height: auto !important;
     }
     html.kb-open .app-container {
       height: auto !important;
       min-height: 0 !important;
       overflow: visible !important;
+      padding-bottom: 0 !important;
     }
-    html.kb-open .search-section {
-      margin-bottom: calc(clamp(16px, 5vh, 52px) / 3) !important;
+
+    /* 移动端软键盘底部间距锚点：占位高度为原红区距离的1/3 */
+    .kb-scroll-anchor {
+      display: none;
+      width: 100%;
+      height: 0;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      flex-shrink: 0;
+      pointer-events: none;
+      visibility: hidden;
     }
-    html.kb-open .app-footer {
-      margin-top: calc(clamp(8px, 3vh, 32px) / 3) !important;
+    html.kb-open .kb-scroll-anchor {
+      display: block;
+      height: var(--kb-bottom-space, 48px);
+      order: 5;
     }
 
     /* Header Section */
@@ -2007,14 +2015,6 @@
         font-size: inherit;
         line-height: inherit;
       }
-
-      /* 移动设备下键盘激活时：缩短页脚到搜索框距离至原来距离的 1/3 */
-      html.kb-open .search-section {
-        margin-bottom: calc(clamp(16px, 3vh, 28px) / 3) !important;
-      }
-      html.kb-open .app-footer {
-        margin-top: 0 !important;
-      }
     }
 
     @media (max-width: 480px) {
@@ -2411,6 +2411,9 @@
         不想看片：<a href="https://bxkp.org" target="_blank" rel="noopener noreferrer" class="footer-link">bxkp.org</a>、不想翻墙：<a href="https://fan.jiakuan.link" target="_blank" rel="noopener noreferrer" class="footer-link">fan.jiakuan.link</a>
       </p>
     </footer>
+
+    <!-- Mobile Virtual Keyboard Bottom Spacing Anchor -->
+    <div class="kb-scroll-anchor" id="kb-scroll-anchor" aria-hidden="true"></div>
   </main>
 
   <!-- Aggregate Search Prompt & Launcher Modal (Centered dialog) -->
@@ -3112,60 +3115,113 @@
       searchInput.addEventListener('input', handleInputChange);
       searchInput.addEventListener('change', handleInputChange);
 
-      // ── 移动端键盘弹出时视口与滚动处理 ────────────────────────────────
-      // 仅对触摸设备生效；桌面端的 focus 不会弹键盘，无需处理。
-      const isTouchDevice = () => ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+      // ── 移动端键盘弹出时：临时允许滚动，并将页脚距底距离缩短至原来的1/3，平滑滚动到底部 ──
+      const isMobileTouchDevice = () => (('ontouchstart' in window) || navigator.maxTouchPoints > 0) && (window.innerWidth <= 820 || window.innerHeight <= 500);
 
-      // 延迟恢复锁定：blur 先于 click 触发，若立即重排布局会导致
-      // 搜索按钮 / 引擎图标的 click 事件坐标偏移而落空。
+      const kbAnchor = document.getElementById('kb-scroll-anchor');
       let lockScrollTimer = null;
-      let unlockScrollTimer = null;
+      let kbScrollTimer = null;
+      let isKbActive = false;
 
-      function lockScroll() {
-        clearTimeout(lockScrollTimer);
-        clearTimeout(unlockScrollTimer);
-
-        lockScrollTimer = setTimeout(() => {
-          if (document.activeElement === searchInput) return;
-
-          // 先平滑滚回顶部，动画完成后再恢复 overflow:hidden 锁定单屏
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-
-          setTimeout(() => {
-            if (document.activeElement !== searchInput) {
-              document.documentElement.classList.remove('kb-open');
-              document.body.style.overflow = '';
+      // 计算原红区（居中时页脚到视口底边距离）的 1/3
+      function calculateTargetBottomSpace() {
+        try {
+          const vv = window.visualViewport;
+          const vh = vv ? vv.height : window.innerHeight;
+          const searchInputEl = document.getElementById('search-input');
+          const appFooterEl = document.querySelector('.app-footer');
+          if (searchInputEl && appFooterEl) {
+            const searchRect = searchInputEl.getBoundingClientRect();
+            const footerRect = appFooterEl.getBoundingClientRect();
+            const searchCenter = searchRect.top + searchRect.height / 2;
+            const searchToFooterBottom = footerRect.bottom - searchCenter;
+            // 搜索框居中（block: 'center'）状态下页脚底部到视口底边的原始红区距离：
+            const originalRedArea = Math.max(0, (vh / 2) - searchToFooterBottom);
+            if (originalRedArea > 24) {
+              // 缩短到原距离的 3 分之 1，并控制在舒适美观的范围内（28px ~ 56px）
+              return Math.max(28, Math.min(56, Math.round(originalRedArea / 3)));
             }
-          }, 240);
-        }, 150);
+          }
+        } catch (e) {}
+        return 46; // 默认回退值（常见机型原约135~145px红区的1/3）
+      }
+
+      function scrollToBottomSmoothly() {
+        if (!isKbActive) return;
+
+        const targetSpace = calculateTargetBottomSpace();
+        document.documentElement.style.setProperty('--kb-bottom-space', targetSpace + 'px');
+
+        const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const scrollBehavior = prefersReducedMotion ? 'auto' : 'smooth';
+
+        requestAnimationFrame(() => {
+          if (!isKbActive) return;
+          if (kbAnchor) {
+            kbAnchor.scrollIntoView({ block: 'end', behavior: scrollBehavior });
+          } else {
+            const scrollEl = document.scrollingElement || document.documentElement || document.body;
+            scrollEl.scrollTo({ top: scrollEl.scrollHeight, behavior: scrollBehavior });
+          }
+        });
       }
 
       function unlockScroll() {
         clearTimeout(lockScrollTimer);
-        clearTimeout(unlockScrollTimer);
+        clearTimeout(kbScrollTimer);
+        isKbActive = true;
 
-        // 立即临时允许页面滚动并缩短页脚与搜索框间距至 1/3
+        // 立即设置预估 1/3 间距并解锁滚动
+        document.documentElement.style.setProperty('--kb-bottom-space', calculateTargetBottomSpace() + 'px');
         document.documentElement.classList.add('kb-open');
 
-        // 等软键盘展开就绪后，平滑滚动至最底部，保持搜索框和页脚完全可见且不卡顿
-        unlockScrollTimer = setTimeout(() => {
-          if (document.activeElement === searchInput || document.documentElement.classList.contains('kb-open')) {
-            window.scrollTo({
-              top: Math.max(document.documentElement.scrollHeight, document.body.scrollHeight),
-              behavior: 'smooth'
-            });
+        // 移动端软键盘弹出通常耗时 200~300ms。
+        // 在键盘展开中程与完成时分别进行平滑滚动到底部，确保滚动无卡顿、精准无缝对齐。
+        kbScrollTimer = setTimeout(() => {
+          scrollToBottomSmoothly();
+        }, 150);
+
+        setTimeout(() => {
+          if (isKbActive) {
+            scrollToBottomSmoothly();
           }
-        }, 250);
+        }, 320);
       }
 
-      if (searchInput && isTouchDevice()) {
-        // pointerdown 提前开启 kb-open，避免 iOS WebKit focus 时因 overflow:hidden 拦截原生滚动计算
-        searchInput.addEventListener('pointerdown', () => {
-          clearTimeout(lockScrollTimer);
-          document.documentElement.classList.add('kb-open');
+      function lockScroll() {
+        clearTimeout(lockScrollTimer);
+        clearTimeout(kbScrollTimer);
+        isKbActive = false;
+
+        // 延迟恢复锁定：blur 先于 click 触发，保留 180ms 避免快速点击按钮/链接时重排落空
+        lockScrollTimer = setTimeout(() => {
+          document.documentElement.classList.remove('kb-open');
+          document.documentElement.style.removeProperty('--kb-bottom-space');
+          document.body.style.overflow = '';
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 180);
+      }
+
+      if (searchInput) {
+        searchInput.addEventListener('focus', () => {
+          if (isMobileTouchDevice()) {
+            unlockScroll();
+          }
         });
-        searchInput.addEventListener('focus', unlockScroll);
-        searchInput.addEventListener('blur', lockScroll);
+        searchInput.addEventListener('blur', () => {
+          if (isKbActive) {
+            lockScroll();
+          }
+        });
+
+        if (window.visualViewport) {
+          window.visualViewport.addEventListener('resize', () => {
+            if (isKbActive) {
+              clearTimeout(kbScrollTimer);
+              kbScrollTimer = setTimeout(scrollToBottomSmoothly, 80);
+            }
+          }, { passive: true });
+        }
       }
       // ────────────────────────────────────────────────────────────────────
 
