@@ -59,6 +59,9 @@
       --book-paper: #d4d4d8;
       
       --font-family: 'LXGW WenKai', 'LXGW WenKai TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+      /* 立体书封面等比缩放系数（由脚本按视口剩余空间计算） */
+      --book-scale: 1;
     }
 
     [data-theme="light"] {
@@ -222,6 +225,11 @@
       left: 50%;
       transform: translateX(-50%) translateY(-6px) scale(0.98);
       min-width: 268px;
+      max-height: calc(100vh - 120px);
+      max-height: calc(100dvh - 120px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
       background: var(--search-bg);
       border: 1px solid var(--search-border);
       border-radius: 12px;
@@ -431,14 +439,16 @@
       margin: 0;
       padding: 0;
       width: 100%;
-      min-height: 100%;
+      height: 100%;
       background-color: var(--bg);
       color: var(--fg);
       font-family: var(--font-family);
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       text-rendering: optimizeLegibility;
-      overflow-x: hidden;
+      /* 首页锁定单屏：内容按视口等比缩放，不产生纵向滚动 */
+      overflow: hidden;
+      overscroll-behavior: none;
       transition: background-color 0.25s ease, color 0.25s ease;
     }
 
@@ -454,22 +464,26 @@
       display: block;
     }
 
-    /* Layout Container */
+    /* Layout Container: 锁定一屏高度，封面按剩余空间缩放 */
     .app-container {
       position: relative;
       z-index: 1;
-      min-height: 100vh;
+      height: 100vh;
+      height: 100dvh;
+      min-height: 0;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: clamp(36px, 7vh, 72px) 20px 48px;
+      padding: clamp(24px, 6vh, 64px) 20px clamp(16px, 3vh, 40px);
     }
 
     /* Header Section */
     .header {
       text-align: center;
-      margin: 0 0 clamp(20px, 4vh, 36px);
+      margin: 0 0 clamp(12px, 3.5vh, 36px);
       max-width: 720px;
+      flex-shrink: 0;
       user-select: none;
     }
 
@@ -516,7 +530,8 @@
     .search-section {
       width: 100%;
       max-width: 640px;
-      margin: 0 auto clamp(36px, 6vh, 56px);
+      margin: 0 auto clamp(16px, 5vh, 52px);
+      flex-shrink: 0;
       transition: width 0.3s ease;
       position: relative;
       z-index: 40;
@@ -929,10 +944,15 @@
     .aggregate-query-label {
       flex-shrink: 0;
       color: var(--fg-subtle);
-      font-size: 0.82rem;
-      font-weight: 500;
+      display: flex;
+      align-items: center;
       user-select: none;
       cursor: text;
+      transition: color 0.18s ease;
+    }
+
+    .aggregate-query-badge:focus-within .aggregate-query-label {
+      color: var(--icon-focus);
     }
 
     .aggregate-query-input {
@@ -1392,7 +1412,11 @@
       justify-content: center;
       perspective: 1200px;
       perspective-origin: 50% 40%;
-      margin: 10px 0 clamp(32px, 5vh, 48px);
+      margin: 6px 0 clamp(16px, 4.5vh, 48px);
+      /* 高度随 --book-scale 收缩，确保标题、封面、搜索框与页脚始终在一屏内 */
+      width: calc(240px * var(--book-scale, 1));
+      height: calc(350px * var(--book-scale, 1));
+      flex: 0 0 auto;
       cursor: grab;
       user-select: none;
       -webkit-user-select: none;
@@ -1410,6 +1434,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      flex: 0 0 auto;
+      transform: scale(var(--book-scale, 1));
+      transform-origin: center center;
       transform-style: preserve-3d;
       -webkit-transform-style: preserve-3d;
     }
@@ -1792,8 +1819,9 @@
 
     /* Footer Related Links */
     .app-footer {
-      margin-top: clamp(32px, 6vh, 52px);
+      margin-top: clamp(8px, 3vh, 32px);
       text-align: center;
+      flex-shrink: 0;
       z-index: 2;
     }
 
@@ -1954,11 +1982,12 @@
     }
 
     @media (max-width: 480px) {
+      :root {
+        /* 无脚本回退值；脚本会按实际剩余空间覆盖 */
+        --book-scale: 0.82;
+      }
       .app-container {
         padding-top: max(38px, calc(env(safe-area-inset-top, 0px) + 36px));
-      }
-      .book-stage {
-        transform: scale(0.82);
       }
       .engine-dropdown {
         left: 1px;
@@ -2366,7 +2395,12 @@
 
       <div class="aggregate-modal-body">
         <div class="aggregate-query-badge" id="aggregate-query-badge">
-          <label class="aggregate-query-label" for="aggregate-query-input">检索词：</label>
+          <label class="aggregate-query-label" for="aggregate-query-input" aria-label="检索词">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:16px;height:16px;display:block;pointer-events:none;">
+              <circle cx="11" cy="11" r="7.5"></circle>
+              <line x1="21" y1="21" x2="16.5" y2="16.5"></line>
+            </svg>
+          </label>
           <input
             type="text"
             id="aggregate-query-input"
@@ -3285,7 +3319,7 @@
         if (!aggregateModalBackdrop) return;
         aggregateModalBackdrop.classList.remove('is-visible');
         aggregateModalBackdrop.setAttribute('aria-hidden', 'true');
-        document.body.style.overflow = '';
+        document.body.style.overflow = 'hidden';
       }
 
       function updateAggregateSearchQuery(newQuery) {
