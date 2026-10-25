@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
   <meta name="color-scheme" content="dark light" />
   <title>不想看书 - 聚合主流「影子图书馆」，你的一站式找书平台</title>
 
@@ -1790,12 +1790,10 @@
         justify-content: space-between;
         align-items: center;
         padding-top: max(40px, calc(env(safe-area-inset-top, 0px) + 38px));
-        padding-bottom: 0;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
         padding-left: clamp(16px, 4vw, 24px);
         padding-right: clamp(16px, 4vw, 24px);
-        transform: translateY(calc(-1 * var(--keyboard-offset, 0px)));
-        transition: transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1);
-        will-change: transform;
+        transition: padding-top 0.2s cubic-bezier(0.2, 0.9, 0.3, 1);
       }
 
       .jiakuan-nav-btn {
@@ -1805,9 +1803,7 @@
         padding: 0;
         font-size: 0.84rem;
         gap: 6px;
-        transform: translateY(calc(-1 * var(--keyboard-offset, 0px)));
-        transition: transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.2s ease;
-        will-change: transform, opacity;
+        transition: opacity 0.2s ease;
       }
       .jiakuan-icon {
         width: 17px;
@@ -1818,19 +1814,51 @@
         right: 14px;
         width: 32px;
         height: 32px;
-        transform: translateY(calc(-1 * var(--keyboard-offset, 0px)));
-        transition: transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.2s ease;
-        will-change: transform, opacity;
+        transition: opacity 0.2s ease;
       }
       .theme-toggle-btn .theme-icon {
         width: 18px;
         height: 18px;
       }
 
+      /* In search-focused mode: hide corner buttons and brand header to maximize viewport room */
       body.is-search-focused .jiakuan-nav-btn,
       body.is-search-focused .theme-toggle-btn {
         opacity: 0;
         pointer-events: none;
+      }
+
+      body.is-search-focused .header {
+        display: none;
+      }
+
+      /* When keyboard pops up on mobile: anchor footer above keyboard and keep input in view */
+      body.is-search-focused .app-container {
+        justify-content: flex-end;
+        padding-top: max(8px, env(safe-area-inset-top, 0px));
+        padding-bottom: calc(var(--keyboard-inset-bottom, 0px) + max(6px, env(safe-area-inset-bottom, 0px))) !important;
+      }
+
+      body.is-search-focused .book-display-section {
+        flex: 1 1 auto;
+        min-height: 0;
+        height: auto;
+        max-height: calc(var(--vv-height, 100dvh) - 100px);
+        margin-bottom: 6px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        overflow: hidden;
+      }
+
+      /* Shorten distance between search box and bottom footer when keyboard is active */
+      body.is-search-focused .search-section {
+        margin-bottom: 8px;
+      }
+
+      body.is-search-focused .app-footer {
+        padding: 0 0 2px 0;
+        margin: 0;
       }
 
       .header {
@@ -1910,15 +1938,29 @@
 
       .engine-dropdown {
         top: auto;
-        bottom: calc(100% + 12px);
+        bottom: calc(100% + 8px);
         left: 5px;
-        max-height: min(280px, calc(100dvh - 120px));
+        max-height: min(280px, calc(var(--vv-height, 100dvh) - 86px));
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
         transform: translateY(6px) scale(0.98);
+        padding: 5px;
       }
       .search-engine-selector.is-open .engine-dropdown {
         transform: translateY(0) scale(1);
+      }
+      .engine-dropdown-header {
+        padding: 4px 8px 5px;
+        margin-bottom: 3px;
+      }
+      .engine-dropdown-item {
+        padding: 6px 9px;
+        gap: 8px;
+        font-size: 0.82rem;
+      }
+      .engine-dropdown-item .engine-item-icon {
+        width: 18px;
+        height: 18px;
       }
 
       .app-footer {
@@ -1940,7 +1982,11 @@
     @media (max-width: 480px) {
       .app-container {
         padding-top: max(38px, calc(env(safe-area-inset-top, 0px) + 36px));
-        padding-bottom: 0;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+      body.is-search-focused .app-container {
+        padding-top: max(6px, env(safe-area-inset-top, 0px));
+        padding-bottom: calc(var(--keyboard-inset-bottom, 0px) + max(4px, env(safe-area-inset-bottom, 0px))) !important;
       }
       .engine-dropdown {
         left: 1px;
@@ -2780,6 +2826,11 @@
       }
 
       if (searchEngineBtn) {
+        searchEngineBtn.addEventListener('pointerdown', (event) => {
+          if (document.activeElement === searchInput) {
+            event.preventDefault();
+          }
+        });
         searchEngineBtn.addEventListener('click', (event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -3898,10 +3949,9 @@
         }
       })();
 
-      // Maintain CSS variables, mobile keyboard adaptive shift, and prevent rubber-band scrolling
+      // Maintain CSS variables, mobile keyboard adaptive insets, and prevent rubber-band scrolling
       (function initMobileViewportShield() {
         let isSearchFocused = false;
-        let baselineHeight = window.innerHeight;
         const appContainer = document.querySelector('.app-container');
         const searchInput = document.getElementById('search-input');
         const searchEngineSelector = document.getElementById('search-engine-selector');
@@ -3920,27 +3970,21 @@
           { passive: false }
         );
 
-        // Prevent unwanted window.scrollY drift in mobile WebKit
-        window.addEventListener('scroll', () => {
-          if (window.innerWidth <= 640 && window.scrollY !== 0) {
-            window.scrollTo(0, 0);
-          }
-        }, { passive: true });
-
-        // Tapping outside search form / footer while search is active dismisses keyboard smoothly
+        // Tapping outside search form / footer / dropdown / modal dismisses keyboard smoothly
         document.addEventListener('touchstart', (e) => {
-          if (isSearchFocused && document.activeElement === searchInput) {
+          if (document.body.classList.contains('is-search-focused')) {
             if (!e.target.closest('#search-form, #engine-dropdown, .app-footer, .aggregate-modal-card')) {
-              searchInput.blur();
+              if (searchInput && document.activeElement === searchInput) {
+                searchInput.blur();
+              }
+              closeEngineDropdown();
             }
           }
         }, { passive: true });
 
         function updateMobileLayoutVars() {
           if (window.innerWidth <= 640) {
-            if (isSearchFocused) return;
             const vh = window.innerHeight;
-            baselineHeight = vh;
             const bookHeight = Math.max(190, Math.min(310, vh * 0.38));
             const scale = (bookHeight / 350).toFixed(4);
             document.documentElement.style.setProperty('--book-height', bookHeight.toFixed(1) + 'px');
@@ -3951,49 +3995,41 @@
           }
         }
 
-        function updateKeyboardOffset() {
+        function updateViewportInsets() {
           if (window.innerWidth > 640) {
-            document.documentElement.style.removeProperty('--keyboard-offset');
+            document.documentElement.style.removeProperty('--keyboard-inset-bottom');
+            document.documentElement.style.removeProperty('--vv-height');
             document.body.classList.remove('is-search-focused');
             return;
           }
+
+          const vv = window.visualViewport;
+          const vvHeight = vv ? vv.height : window.innerHeight;
+          const offsetTop = vv ? (vv.offsetTop || 0) : 0;
+
+          document.documentElement.style.setProperty('--vv-height', `${vvHeight}px`);
 
           const isDropdownOpen = !!(searchEngineSelector && searchEngineSelector.classList.contains('is-open'));
           const isInputFocused = document.activeElement === searchInput;
 
           if (!isInputFocused && !isDropdownOpen) {
-            document.documentElement.style.removeProperty('--keyboard-offset');
+            document.documentElement.style.removeProperty('--keyboard-inset-bottom');
             document.body.classList.remove('is-search-focused');
             return;
           }
 
           document.body.classList.add('is-search-focused');
 
-          const vv = window.visualViewport;
-          const currentVvHeight = vv ? vv.height : window.innerHeight;
-          const offsetTop = vv ? (vv.offsetTop || 0) : 0;
-          const visibleBottom = offsetTop + currentVvHeight;
-
-          // Untransformed total layout height of container
-          const containerHeight = Math.max(appContainer ? appContainer.offsetHeight : 0, baselineHeight);
-
-          // Calculate exact shift needed to place footer at the bottom of the visible viewport
-          let shift = containerHeight - visibleBottom;
-
-          // If visualViewport has not shrunk yet at the very beginning of the focus animation,
-          // immediately provide an estimated upward motion so the page glides smoothly with keyboard
-          if (shift <= 0 && isInputFocused) {
-            shift = Math.round(Math.min(320, containerHeight * 0.40));
-          }
-
-          shift = Math.max(0, Math.round(shift));
-          document.documentElement.style.setProperty('--keyboard-offset', shift + 'px');
+          // Calculate exact layout height obscured by keyboard and/or browser bottom toolbars:
+          const obscuredBottom = Math.max(0, Math.round(window.innerHeight - vvHeight - offsetTop));
+          document.documentElement.style.setProperty('--keyboard-inset-bottom', `${obscuredBottom}px`);
         }
 
         if (searchInput) {
           searchInput.addEventListener('focus', () => {
             isSearchFocused = true;
-            updateKeyboardOffset();
+            document.body.classList.add('is-search-focused');
+            updateViewportInsets();
           });
 
           searchInput.addEventListener('blur', () => {
@@ -4002,31 +4038,38 @@
             setTimeout(() => {
               const isDropdownOpen = !!(searchEngineSelector && searchEngineSelector.classList.contains('is-open'));
               if (document.activeElement !== searchInput && !isDropdownOpen) {
-                updateKeyboardOffset();
+                document.body.classList.remove('is-search-focused');
+                updateViewportInsets();
                 updateMobileLayoutVars();
+                if (window.innerWidth <= 640 && window.scrollY !== 0) {
+                  window.scrollTo(0, 0);
+                }
               }
-            }, 60);
+            }, 80);
           });
         }
 
         if (window.visualViewport) {
-          window.visualViewport.addEventListener('resize', updateKeyboardOffset, { passive: true });
-          window.visualViewport.addEventListener('scroll', updateKeyboardOffset, { passive: true });
+          window.visualViewport.addEventListener('resize', updateViewportInsets, { passive: true });
+          window.visualViewport.addEventListener('scroll', updateViewportInsets, { passive: true });
         }
 
         window.addEventListener('resize', () => {
           updateMobileLayoutVars();
-          updateKeyboardOffset();
+          updateViewportInsets();
         }, { passive: true });
 
         window.addEventListener('orientationchange', () => {
-          updateMobileLayoutVars();
-          updateKeyboardOffset();
+          setTimeout(() => {
+            updateMobileLayoutVars();
+            updateViewportInsets();
+          }, 80);
         }, { passive: true });
 
-        window.addEventListener('engineDropdownChange', updateKeyboardOffset, { passive: true });
+        window.addEventListener('engineDropdownChange', updateViewportInsets, { passive: true });
 
         updateMobileLayoutVars();
+        updateViewportInsets();
       })();
     })();
   </script>
