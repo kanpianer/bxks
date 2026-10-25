@@ -517,7 +517,8 @@
       width: 100%;
       max-width: 640px;
       margin-inline: auto;
-      margin-bottom: clamp(36px, 6vh, 56px);
+      margin-top: clamp(56px, 7vh, 72px);
+      margin-bottom: clamp(24px, 4vh, 40px);
       transition: width 0.3s ease;
       position: relative;
       z-index: 40;
@@ -630,11 +631,11 @@
       pointer-events: auto;
     }
 
-    /* Engine Dropdown Menu (Desktop: Pop down below search box) */
+    /* Engine Dropdown Menu (Opens upward: search box sits below the book) */
     .engine-dropdown {
       position: absolute;
-      top: calc(100% + 12px);
-      bottom: auto;
+      top: auto;
+      bottom: calc(100% + 12px);
       left: 5px;
       min-width: 196px;
       max-width: calc(100vw - 28px);
@@ -650,7 +651,7 @@
       -webkit-backdrop-filter: blur(18px);
       opacity: 0;
       visibility: hidden;
-      transform: translateY(-6px) scale(0.98);
+      transform: translateY(6px) scale(0.98);
       transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.2s ease;
       pointer-events: none;
       user-select: none;
@@ -1907,9 +1908,9 @@
       }
 
       .search-section {
-        order: 2;
+        order: 3;
         width: 100%;
-        margin: 0 0 clamp(8px, 1.8vh, 16px);
+        margin: clamp(4px, 1.2vh, 10px) 0 clamp(8px, 1.8vh, 16px);
         flex-shrink: 0;
         position: relative;
         z-index: 40;
@@ -1938,18 +1939,18 @@
       }
 
       .engine-dropdown {
-        top: calc(100% + 10px);
-        bottom: auto;
+        top: auto;
+        bottom: calc(100% + 10px);
         left: 5px;
         max-height: min(320px, calc(100dvh - 180px));
-        transform: translateY(-6px) scale(0.98);
+        transform: translateY(6px) scale(0.98);
       }
       .search-engine-selector.is-open .engine-dropdown {
         transform: translateY(0) scale(1);
       }
 
       .book-display-section {
-        order: 3;
+        order: 2;
         margin: 0;
         flex: 1 1 auto;
         min-height: 0;
@@ -2247,6 +2248,62 @@
       </p>
     </header>
 
+    <!-- Synchronized 3D Floating Book Cover Section (Interactive Hover & Drag) -->
+    <section class="book-display-section" id="book-display-section" title="可拖拽互动" aria-label="当前推荐书籍立体封面展示">
+      <div class="book-stage">
+        <div class="book-float-wrapper" id="book-float-wrapper">
+          <div class="book-3d" id="book-3d">
+            <!-- Front Cover Face -->
+            <div class="book-face-front" id="book-face-front">
+              <div class="book-crosshatch-bg" aria-hidden="true"></div>
+              
+              <div class="cover-header">
+                <div class="cover-series-tag">Z-LIBRARY EDITION</div>
+              </div>
+
+              <!-- Central Subject/Author Representative Image Area -->
+              <div class="cover-image-area" id="cover-image-area" aria-hidden="true">
+                <img 
+                  id="cover-image" 
+                  class="cover-image state-center" 
+                  src="assets/images/book_0.jpg" 
+                  alt="" 
+                  loading="eager" 
+                  decoding="async" 
+                />
+              </div>
+
+              <!-- Cover Footer Stage (Author & Title) -->
+              <div class="cover-footer-stage" id="cover-footer-stage">
+                <div class="cover-footer state-center" id="cover-footer">
+                  <div class="cover-author" id="cover-author">达尔文</div>
+                  <h2 class="cover-main-title" id="cover-main-title">物种起源</h2>
+                </div>
+              </div>
+            </div>
+
+            <!-- Spine Face -->
+            <div class="book-face-spine">
+              <div class="spine-text-container">
+                <span class="spine-title" id="spine-title">物种起源</span>
+              </div>
+              <div class="spine-logo">Z</div>
+            </div>
+
+            <!-- Page Block (Right & Top) -->
+            <div class="book-face-pages-right" aria-hidden="true"></div>
+            <div class="book-face-pages-top" aria-hidden="true"></div>
+
+            <!-- Back Cover Face -->
+            <div class="book-face-back" aria-hidden="true"></div>
+          </div>
+        </div>
+
+        <!-- Floor Perspective Shadow -->
+        <div class="book-floor-shadow" id="book-floor-shadow" aria-hidden="true"></div>
+      </div>
+    </section>
+
     <!-- Search Section -->
     <section class="search-section" aria-label="书籍检索">
       <form class="search-form" id="search-form" role="search" target="_blank" rel="noopener noreferrer" novalidate>
@@ -2311,62 +2368,6 @@
           </svg>
         </button>
       </form>
-    </section>
-
-    <!-- Synchronized 3D Floating Book Cover Section (Interactive Hover & Drag) -->
-    <section class="book-display-section" id="book-display-section" title="可拖拽互动" aria-label="当前推荐书籍立体封面展示">
-      <div class="book-stage">
-        <div class="book-float-wrapper" id="book-float-wrapper">
-          <div class="book-3d" id="book-3d">
-            <!-- Front Cover Face -->
-            <div class="book-face-front" id="book-face-front">
-              <div class="book-crosshatch-bg" aria-hidden="true"></div>
-              
-              <div class="cover-header">
-                <div class="cover-series-tag">Z-LIBRARY EDITION</div>
-              </div>
-
-              <!-- Central Subject/Author Representative Image Area -->
-              <div class="cover-image-area" id="cover-image-area" aria-hidden="true">
-                <img 
-                  id="cover-image" 
-                  class="cover-image state-center" 
-                  src="assets/images/book_0.jpg" 
-                  alt="" 
-                  loading="eager" 
-                  decoding="async" 
-                />
-              </div>
-
-              <!-- Cover Footer Stage (Author & Title) -->
-              <div class="cover-footer-stage" id="cover-footer-stage">
-                <div class="cover-footer state-center" id="cover-footer">
-                  <div class="cover-author" id="cover-author">达尔文</div>
-                  <h2 class="cover-main-title" id="cover-main-title">物种起源</h2>
-                </div>
-              </div>
-            </div>
-
-            <!-- Spine Face -->
-            <div class="book-face-spine">
-              <div class="spine-text-container">
-                <span class="spine-title" id="spine-title">物种起源</span>
-              </div>
-              <div class="spine-logo">Z</div>
-            </div>
-
-            <!-- Page Block (Right & Top) -->
-            <div class="book-face-pages-right" aria-hidden="true"></div>
-            <div class="book-face-pages-top" aria-hidden="true"></div>
-
-            <!-- Back Cover Face -->
-            <div class="book-face-back" aria-hidden="true"></div>
-          </div>
-        </div>
-
-        <!-- Floor Perspective Shadow -->
-        <div class="book-floor-shadow" id="book-floor-shadow" aria-hidden="true"></div>
-      </div>
     </section>
 
     <!-- Footer Related Links -->
@@ -3302,7 +3303,10 @@
         setTimeout(() => {
           if (aggregateQueryInput) {
             aggregateQueryInput.focus();
-            aggregateQueryInput.select();
+            try {
+              const len = aggregateQueryInput.value.length;
+              aggregateQueryInput.setSelectionRange(len, len);
+            } catch (e) {}
           }
         }, 60);
       }
