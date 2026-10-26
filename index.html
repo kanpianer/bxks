@@ -462,6 +462,10 @@
       z-index: 0;
       pointer-events: none;
       display: block;
+      transform: translate3d(0, 0, 0);
+      -webkit-transform: translate3d(0, 0, 0);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
     }
 
     /* Layout Container: 锁定一屏高度，封面按剩余空间缩放 */
@@ -478,23 +482,30 @@
       padding: clamp(24px, 6vh, 64px) 20px clamp(16px, 3vh, 40px);
     }
 
-    /* 移动端键盘弹出时：临时允许滚动，缩短页脚与视口底边距离至1/3并平滑滚动到底部 */
-    html.kb-open,
-    html.kb-open body {
+    /* 移动端键盘激活时：临时允许页面纵向滚动到底部，由底部锚点精准设定页脚与视口底边的距离 */
+    html.kb-open {
       overflow-y: auto !important;
       overflow-x: hidden !important;
-      overscroll-behavior: contain;
+      overscroll-behavior-y: contain;
       -webkit-overflow-scrolling: touch;
       height: auto !important;
+      min-height: 100% !important;
+    }
+    html.kb-open body {
+      overflow-y: visible !important;
+      overflow-x: hidden !important;
+      overscroll-behavior-y: contain;
+      height: auto !important;
+      min-height: 100% !important;
     }
     html.kb-open .app-container {
       height: auto !important;
-      min-height: 0 !important;
+      min-height: 100% !important;
       overflow: visible !important;
       padding-bottom: 0 !important;
     }
 
-    /* 移动端软键盘底部间距锚点：占位高度为原红区距离的1/3 */
+    /* 移动端软键盘底部间距锚点：高度由脚本通用适配，确保页脚距视口底边与截图完全一致（26px） */
     .kb-scroll-anchor {
       display: none;
       width: 100%;
@@ -508,8 +519,16 @@
     }
     html.kb-open .kb-scroll-anchor {
       display: block;
-      height: var(--kb-bottom-space, 48px);
+      height: var(--kb-bottom-space, 26px);
       order: 5;
+    }
+    html.kb-open .app-footer {
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    html.kb-open .footer-links {
+      margin: 0 !important;
+      padding: 0 !important;
     }
 
     /* Header Section */
@@ -584,6 +603,8 @@
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.05);
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
       padding: 5px 6px 5px 16px;
+      transform: translateZ(0);
+      -webkit-transform: translateZ(0);
     }
 
     .search-form:hover {
@@ -999,6 +1020,7 @@
       font-size: 1rem;      /* ≥16px：防止 iOS Safari 点击时自动缩放页面 */
       font-weight: 600;
       color: var(--fg);
+      caret-color: var(--fg);
       padding: 0;
       margin: 0;
       touch-action: manipulation; /* 禁用双击缩放 */
@@ -1475,6 +1497,8 @@
       transform-origin: center center;
       transform-style: preserve-3d;
       -webkit-transform-style: preserve-3d;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
     }
 
     /* Floating & Interactive Motion Wrapper (Driven by Smooth JS Physics) */
@@ -1484,6 +1508,8 @@
       height: 330px;
       transform-style: preserve-3d;
       -webkit-transform-style: preserve-3d;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
       will-change: transform;
       transform: translate3d(0, 0, 0) rotateY(-24deg) rotateX(7deg) rotateZ(-1deg);
     }
@@ -3115,54 +3141,104 @@
       searchInput.addEventListener('input', handleInputChange);
       searchInput.addEventListener('change', handleInputChange);
 
-      // ── 移动端键盘弹出时：临时允许滚动，并将页脚距底距离缩短至原来的1/3，平滑滚动到底部 ──
-      const isMobileTouchDevice = () => (('ontouchstart' in window) || navigator.maxTouchPoints > 0) && (window.innerWidth <= 820 || window.innerHeight <= 500);
+      // ── 移动端键盘激活时：通用多浏览器适配，临时允许自动滚动到底部并精准设定页脚与视口底边的距离 ──
+      const isMobileTouchDevice = () => {
+        const hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+        const isSmallScreen = window.innerWidth <= 850 || window.innerHeight <= 520;
+        return hasTouch && isSmallScreen;
+      };
 
       const kbAnchor = document.getElementById('kb-scroll-anchor');
       let lockScrollTimer = null;
       let kbScrollTimer = null;
       let isKbActive = false;
+      let isUserInteracting = false; // 用户手指触摸/滑动中标志，防止脚本滚动与用户手势竞争造成卡顿
 
-      // 计算原红区（居中时页脚到视口底边距离）的 1/3
-      function calculateTargetBottomSpace() {
+      window.addEventListener('touchstart', () => {
+        isUserInteracting = true;
+        clearTimeout(kbScrollTimer);
+      }, { passive: true });
+
+      window.addEventListener('touchend', () => {
+        // 用户手指离开后稍作延时，等待原生惯性滑动基本平稳
+        setTimeout(() => {
+          isUserInteracting = false;
+        }, 350);
+      }, { passive: true });
+
+      window.addEventListener('touchcancel', () => {
+        isUserInteracting = false;
+      }, { passive: true });
+
+      // 截图中页脚文字底边到浏览器可视视口底边的精准目标距离（26px，与截图完全一致）
+      const TARGET_FOOTER_BOTTOM_SPACE = 26;
+
+      // 跨浏览器通用计算：兼容 iOS WebKit（视口重叠遮挡型）与 Android Blink（视口收缩重排型）
+      function updateKbBottomSpace() {
         try {
           const vv = window.visualViewport;
-          const vh = vv ? vv.height : window.innerHeight;
-          const searchInputEl = document.getElementById('search-input');
-          const appFooterEl = document.querySelector('.app-footer');
-          if (searchInputEl && appFooterEl) {
-            const searchRect = searchInputEl.getBoundingClientRect();
-            const footerRect = appFooterEl.getBoundingClientRect();
-            const searchCenter = searchRect.top + searchRect.height / 2;
-            const searchToFooterBottom = footerRect.bottom - searchCenter;
-            // 搜索框居中（block: 'center'）状态下页脚底部到视口底边的原始红区距离：
-            const originalRedArea = Math.max(0, (vh / 2) - searchToFooterBottom);
-            if (originalRedArea > 24) {
-              // 缩短到原距离的 3 分之 1，并控制在舒适美观的范围内（28px ~ 56px）
-              return Math.max(28, Math.min(56, Math.round(originalRedArea / 3)));
-            }
+          let keyboardOverlap = 0;
+          if (vv) {
+            // 计算键盘及浏览器底栏对布局视口的实际遮挡高度（不要加 offsetTop，避免 iOS Safari 视口内滚动时误减）
+            keyboardOverlap = Math.max(0, window.innerHeight - vv.height);
           }
-        } catch (e) {}
-        return 46; // 默认回退值（常见机型原约135~145px红区的1/3）
+          // 底部锚点高度 = 目标可视距底距离(26px) + 软键盘实际遮挡高度
+          const totalSpace = Math.round(TARGET_FOOTER_BOTTOM_SPACE + keyboardOverlap);
+          document.documentElement.style.setProperty('--kb-bottom-space', totalSpace + 'px');
+          return totalSpace;
+        } catch (e) {
+          document.documentElement.style.setProperty('--kb-bottom-space', TARGET_FOOTER_BOTTOM_SPACE + 'px');
+          return TARGET_FOOTER_BOTTOM_SPACE;
+        }
       }
 
-      function scrollToBottomSmoothly() {
-        if (!isKbActive) return;
+      function scrollToBottomSmoothly(isSmooth = true) {
+        // 当用户正在手动触摸滑动时，切勿强行执行 scrollTo，保证 120Hz 原生丝滑手势
+        if (!isKbActive || isUserInteracting) return;
 
-        const targetSpace = calculateTargetBottomSpace();
-        document.documentElement.style.setProperty('--kb-bottom-space', targetSpace + 'px');
+        updateKbBottomSpace();
 
         const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        const scrollBehavior = prefersReducedMotion ? 'auto' : 'smooth';
+        const scrollBehavior = (isSmooth && !prefersReducedMotion) ? 'smooth' : 'auto';
 
         requestAnimationFrame(() => {
-          if (!isKbActive) return;
-          if (kbAnchor) {
-            kbAnchor.scrollIntoView({ block: 'end', behavior: scrollBehavior });
-          } else {
-            const scrollEl = document.scrollingElement || document.documentElement || document.body;
-            scrollEl.scrollTo({ top: scrollEl.scrollHeight, behavior: scrollBehavior });
+          if (!isKbActive || isUserInteracting) return;
+
+          const vv = window.visualViewport;
+          const vh = vv ? vv.height : window.innerHeight;
+          const scrollEl = document.scrollingElement || document.documentElement || document.body;
+          const maxScroll = Math.max(
+            scrollEl.scrollHeight,
+            document.documentElement.scrollHeight,
+            document.body.scrollHeight
+          );
+
+          try {
+            window.scrollTo({ top: maxScroll, behavior: scrollBehavior });
+          } catch (e) {
+            window.scrollTo(0, maxScroll);
           }
+
+          // 闭环精准校验：根据页脚文字元素的实际屏幕渲染坐标（getBoundingClientRect）与当前可视视口底边对比
+          // 彻底消除不同浏览器（iOS Safari 底栏、Brave、Chrome、Android 等）的视口度量差异，确保视口底边到页脚文字绝对统一
+          requestAnimationFrame(() => {
+            if (!isKbActive || isUserInteracting) return;
+            const footerText = document.querySelector('.footer-links') || document.querySelector('.app-footer');
+            if (footerText) {
+              const rect = footerText.getBoundingClientRect();
+              const actualBottom = rect.bottom;
+              const desiredBottom = vh - TARGET_FOOTER_BOTTOM_SPACE;
+              const diff = Math.round(actualBottom - desiredBottom);
+              if (Math.abs(diff) >= 1) {
+                const targetScrollY = Math.max(0, Math.round(window.scrollY + diff));
+                try {
+                  window.scrollTo({ top: targetScrollY, behavior: scrollBehavior });
+                } catch (err) {
+                  window.scrollTo(0, targetScrollY);
+                }
+              }
+            }
+          });
         });
       }
 
@@ -3171,21 +3247,32 @@
         clearTimeout(kbScrollTimer);
         isKbActive = true;
 
-        // 立即设置预估 1/3 间距并解锁滚动
-        document.documentElement.style.setProperty('--kb-bottom-space', calculateTargetBottomSpace() + 'px');
         document.documentElement.classList.add('kb-open');
+        updateKbBottomSpace();
 
-        // 移动端软键盘弹出通常耗时 200~300ms。
-        // 在键盘展开中程与完成时分别进行平滑滚动到底部，确保滚动无卡顿、精准无缝对齐。
+        // 软键盘弹起多阶段滚动对齐：覆盖各主流浏览器软键盘展开过程（通常耗时 200~350ms）
+        scrollToBottomSmoothly(false); // 立即滚动保证视口就位
         kbScrollTimer = setTimeout(() => {
-          scrollToBottomSmoothly();
-        }, 150);
+          scrollToBottomSmoothly(false);
+        }, 100);
 
         setTimeout(() => {
           if (isKbActive) {
-            scrollToBottomSmoothly();
+            scrollToBottomSmoothly(true);
           }
-        }, 320);
+        }, 250);
+
+        setTimeout(() => {
+          if (isKbActive) {
+            scrollToBottomSmoothly(true);
+          }
+        }, 400);
+
+        setTimeout(() => {
+          if (isKbActive) {
+            scrollToBottomSmoothly(true);
+          }
+        }, 550);
       }
 
       function lockScroll() {
@@ -3195,19 +3282,45 @@
 
         // 延迟恢复锁定：blur 先于 click 触发，保留 180ms 避免快速点击按钮/链接时重排落空
         lockScrollTimer = setTimeout(() => {
-          document.documentElement.classList.remove('kb-open');
-          document.documentElement.style.removeProperty('--kb-bottom-space');
-          document.body.style.overflow = '';
+          // 若聚合搜索弹窗已打开，切勿重置滚动或背景锁定，避免移动端输入框失焦与键盘收起
+          if (aggregateModalBackdrop && aggregateModalBackdrop.classList.contains('is-visible')) {
+            return;
+          }
+          if (document.activeElement === searchInput) {
+            isKbActive = true;
+            return;
+          }
+
+          // 平滑滚回顶部，确保视口恢复自然流畅
           window.scrollTo({ top: 0, behavior: 'smooth' });
+
+          // 待平滑滚动完成后移除 kb-open 恢复首屏锁定
+          setTimeout(() => {
+            if (!isKbActive) {
+              document.documentElement.classList.remove('kb-open');
+              document.documentElement.style.removeProperty('--kb-bottom-space');
+              document.body.style.overflow = '';
+            }
+          }, 240);
         }, 180);
       }
 
       if (searchInput) {
+        // pointerdown 提前开启 kb-open，避免 iOS WebKit focus 时因首屏 overflow:hidden 拦截原生滚动计算
+        searchInput.addEventListener('pointerdown', () => {
+          if (isMobileTouchDevice()) {
+            clearTimeout(lockScrollTimer);
+            document.documentElement.classList.add('kb-open');
+            updateKbBottomSpace();
+          }
+        });
+
         searchInput.addEventListener('focus', () => {
           if (isMobileTouchDevice()) {
             unlockScroll();
           }
         });
+
         searchInput.addEventListener('blur', () => {
           if (isKbActive) {
             lockScroll();
@@ -3216,12 +3329,19 @@
 
         if (window.visualViewport) {
           window.visualViewport.addEventListener('resize', () => {
-            if (isKbActive) {
+            if (isKbActive && !isUserInteracting) {
               clearTimeout(kbScrollTimer);
-              kbScrollTimer = setTimeout(scrollToBottomSmoothly, 80);
+              kbScrollTimer = setTimeout(() => scrollToBottomSmoothly(true), 60);
             }
           }, { passive: true });
         }
+
+        window.addEventListener('resize', () => {
+          if (isKbActive && !isUserInteracting) {
+            clearTimeout(kbScrollTimer);
+            kbScrollTimer = setTimeout(() => scrollToBottomSmoothly(true), 80);
+          }
+        }, { passive: true });
       }
       // ────────────────────────────────────────────────────────────────────
 
@@ -3381,9 +3501,29 @@
       let currentAggregateAllocations = [];
       let currentAggregateQuery = '';
 
+      function focusAggregateSearchInput() {
+        if (!aggregateQueryInput) return;
+        try {
+          aggregateQueryInput.focus({ preventScroll: true });
+          const len = aggregateQueryInput.value ? aggregateQueryInput.value.length : 0;
+          aggregateQueryInput.setSelectionRange(len, len);
+        } catch (e) {
+          try {
+            aggregateQueryInput.focus();
+          } catch (err) {}
+        }
+      }
+
       function openAggregateModal(query) {
         if (!aggregateModalBackdrop) return;
         currentAggregateQuery = query || '';
+
+        // 取消移动端视口恢复定时器，避免背景滚动或重排导致弹窗输入框失焦与软键盘意外收起
+        clearTimeout(lockScrollTimer);
+        clearTimeout(kbScrollTimer);
+        isKbActive = false;
+        document.documentElement.classList.remove('kb-open');
+        document.documentElement.style.removeProperty('--kb-bottom-space');
 
         // Notice: Only show to user twice, then automatically disappear (unless browser data is cleared)
         let noticeShownCount = 0;
@@ -3453,22 +3593,17 @@
         aggregateModalBackdrop.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
 
-        setTimeout(() => {
-          if (aggregateQueryInput) {
-            aggregateQueryInput.focus();
-            try {
-              const len = aggregateQueryInput.value.length;
-              aggregateQueryInput.setSelectionRange(len, len);
-            } catch (e) {}
-          }
-        }, 60);
+        // 打开弹窗时不自动聚焦上方的搜索框，并使可能处于聚焦状态的元素失焦，避免键盘遮挡列表
+        if (document.activeElement && typeof document.activeElement.blur === 'function') {
+          document.activeElement.blur();
+        }
       }
 
       function closeAggregateModal() {
         if (!aggregateModalBackdrop) return;
         aggregateModalBackdrop.classList.remove('is-visible');
         aggregateModalBackdrop.setAttribute('aria-hidden', 'true');
-        document.body.style.overflow = 'hidden';
+        document.body.style.overflow = '';
       }
 
       function updateAggregateSearchQuery(newQuery) {
@@ -3573,7 +3708,7 @@
         const query = currentAggregateQuery.trim();
         if (!query) {
           showSearchToast('请输入检索词');
-          if (aggregateQueryInput) aggregateQueryInput.focus();
+          focusAggregateSearchInput();
           return;
         }
 
@@ -3596,7 +3731,7 @@
         const query = currentAggregateQuery.trim();
         if (!query) {
           showSearchToast('请输入检索词');
-          if (aggregateQueryInput) aggregateQueryInput.focus();
+          focusAggregateSearchInput();
           return;
         }
 
@@ -3632,6 +3767,14 @@
         }
       }
 
+      if (aggregateQueryBadge) {
+        aggregateQueryBadge.addEventListener('click', (e) => {
+          if (e.target !== aggregateQueryClear && !e.target.closest('#aggregate-query-clear')) {
+            focusAggregateSearchInput();
+          }
+        });
+      }
+
       if (aggregateQueryInput) {
         aggregateQueryInput.addEventListener('input', (e) => {
           updateAggregateSearchQuery(e.target.value);
@@ -3654,7 +3797,7 @@
           if (aggregateQueryInput) {
             aggregateQueryInput.value = '';
             updateAggregateSearchQuery('');
-            aggregateQueryInput.focus();
+            focusAggregateSearchInput();
           }
         });
       }
@@ -3711,6 +3854,10 @@
 
         // Unified Pointer Events (Mouse + Touch + Pen)
         bookDisplaySection.addEventListener('pointerdown', (e) => {
+          if (e.pointerType === 'touch') {
+            // 触摸屏设备放行原生手势，避免 setPointerCapture 拦截移动端纵向平滑滚动
+            return;
+          }
           isPointerDown = true;
           startPointerX = e.clientX;
           startPointerY = e.clientY;
@@ -3721,6 +3868,10 @@
         });
 
         bookDisplaySection.addEventListener('pointermove', (e) => {
+          if (e.pointerType === 'touch') {
+            // 触摸屏放行，避免触发高开销 getBoundingClientRect 造成滚动卡顿
+            return;
+          }
           const rect = bookDisplaySection.getBoundingClientRect();
           const centerX = rect.left + rect.width / 2;
           const centerY = rect.top + rect.height / 2;
