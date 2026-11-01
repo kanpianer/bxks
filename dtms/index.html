@@ -388,12 +388,13 @@
     <!-- 2. Search routing -->
     <section class="panel">
       <h2>搜索引擎与分发权重</h2>
-      <p class="desc">为不同搜索引擎网址设置所属网站名称（如 Anna’s Archive、Libgen、Bookracy、WeLib 等），同一网站名称下的多个网址按权重自动计算组内分发比例；首页可通过放大镜图标下拉切换不同的搜索引擎。</p>
+      <p class="desc">为不同搜索引擎网址设置所属网站名称（如 Anna’s Archive、Libgen、Bookracy、WeLib、OceanofPDF 等），同一网站名称下的多个网址按权重自动计算组内分发比例；首页可通过放大镜图标下拉切换不同的搜索引擎。</p>
       <datalist id="engine-name-suggestions">
         <option value="Anna’s Archive"></option>
         <option value="Libgen"></option>
         <option value="Bookracy"></option>
         <option value="WeLib"></option>
+        <option value="OceanofPDF"></option>
         <option value="Z-Library"></option>
       </datalist>
       <div class="rows" id="engine-rows"></div>
@@ -424,6 +425,7 @@
       </div>
       <div class="actions-bar">
         <button id="btn-save" class="btn" type="button">提交更新</button>
+        <button id="btn-export-json" class="btn btn-ghost" type="button">下载 JSON 文件</button>
         <label class="check"><input id="force" type="checkbox" /> 强制覆盖远端</label>
       </div>
       <p class="hint" id="status-line">正在同步 GitHub 最新内容 …</p>
@@ -457,7 +459,8 @@
 
       <div class="actions-bar">
         <button id="btn-verify" class="btn btn-ghost" type="button">验证令牌</button>
-        <button id="btn-pull" class="btn btn-ghost" type="button">读取最新</button>
+        <button id="btn-pull" class="btn btn-ghost" type="button">读取远端最新</button>
+        <button id="btn-reload-local" class="btn btn-ghost" type="button">载入本地文件</button>
         <label class="check"><input id="remember" type="checkbox" /> 在本机记住令牌与仓库设置</label>
       </div>
 
@@ -505,21 +508,39 @@
         busy: false
       };
 
-      /* Resolve paths against the CMS directory regardless of the host domain,
+      /* Resolve paths against the CMS directory regardless of the host domain or protocol (http/https/file),
          including the "/dtms" (no trailing slash) form. */
       function pageBase() {
-        let path = window.location.pathname;
-        if (!path.endsWith('/')) {
-          const last = path.slice(path.lastIndexOf('/') + 1);
-          path = last.indexOf('.') === -1
-            ? path + '/'
-            : path.slice(0, path.lastIndexOf('/') + 1);
+        let href = window.location.href.split('?')[0].split('#')[0];
+        if (!href.endsWith('/')) {
+          const last = href.slice(href.lastIndexOf('/') + 1);
+          if (last.indexOf('.') === -1) {
+            href = href + '/';
+          } else {
+            href = href.slice(0, href.lastIndexOf('/') + 1);
+          }
         }
-        return window.location.origin + path;
+        return href;
       }
 
       function resolve(path) {
         return new URL(path, pageBase()).toString();
+      }
+
+      function isLocalHost() {
+        const host = window.location.hostname;
+        if (window.location.protocol === 'file:') return true;
+        if (!host) return true;
+        return (
+          host === 'localhost' ||
+          host === '127.0.0.1' ||
+          host === '0.0.0.0' ||
+          host === '[::1]' ||
+          host.endsWith('.local') ||
+          host.startsWith('192.168.') ||
+          host.startsWith('10.') ||
+          /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(host)
+        );
       }
 
       const $ = function (id) { return document.getElementById(id); };
@@ -534,6 +555,8 @@
         verify: $('btn-verify'),
         pull: $('btn-pull'),
         save: $('btn-save'),
+        exportJson: $('btn-export-json'),
+        reloadLocal: $('btn-reload-local'),
         force: $('force'),
         commitMessage: $('commit-message'),
         statusLine: $('status-line'),
@@ -966,6 +989,10 @@
               defaultName = 'Z-Library';
             } else if (defaultName.toLowerCase().includes('genesis')) {
               defaultName = 'Libgen';
+            } else if (domain.includes('oceanofpdf')) {
+              defaultName = 'OceanofPDF';
+            } else if (domain.includes('audiobookbay') || domain.includes('abb')) {
+              defaultName = 'AudioBook Bay (ABB)';
             }
 
             state.searchEngines.push({ name: defaultName, domain: domain, weight: 25, enabled: true });
@@ -1004,6 +1031,8 @@
             else if (d.includes('libgen')) name = 'Libgen';
             else if (d.includes('bookracy')) name = 'Bookracy';
             else if (d.includes('welib')) name = 'WeLib';
+            else if (d.includes('oceanofpdf')) name = 'OceanofPDF';
+            else if (d.includes('audiobookbay') || d.includes('abb')) name = 'AudioBook Bay (ABB)';
             else name = 'Z-Library';
           }
           return {
@@ -1336,6 +1365,23 @@
         }
       }
 
+      function exportToFile() {
+        try {
+          const text = exportDocument();
+          const blob = new Blob([text], { type: 'application/json;charset=utf-8' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'mirrors.json';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(a.href);
+          log('已导出并下载 mirrors.json 文件', 'ok');
+        } catch (e) {
+          log('导出失败：' + e.message, 'err');
+        }
+      }
+
       async function boot() {
         window.addEventListener('error', function (event) {
           log('脚本错误：' + (event.message || event.error), 'err');
@@ -1355,22 +1401,40 @@
         els.verify.addEventListener('click', verifyToken);
         els.pull.addEventListener('click', function () { pullFromGitHub(); });
         els.save.addEventListener('click', saveToGitHub);
+        if (els.exportJson) els.exportJson.addEventListener('click', exportToFile);
+        if (els.reloadLocal) els.reloadLocal.addEventListener('click', async function () {
+          if (state.dirty && !window.confirm('当前有未保存的修改，重新载入本地文件将覆盖它们。继续？')) return;
+          setBusy(true);
+          setStatus('正在重新载入本地资源 …');
+          try {
+            await loadLocalFallback();
+            setStatus('已载入本地 ' + (state.config.dataPath || DEFAULT_CONFIG.dataPath) + ' 资源');
+          } finally {
+            setBusy(false);
+          }
+        });
 
         log('管理页已就绪，域名：' + (window.location.host || window.location.protocol));
 
-        // Show something immediately, then always try to pull the live file so the
-        // page opens on the latest content even without a token (public repos).
+        // Always load the local file
         try {
           await loadLocalFallback();
         } catch (error) {
-          log('载入站内数据失败：' + error.message, 'err');
+          log('载入本地数据失败：' + error.message, 'err');
         }
 
-        setStatus('正在同步 GitHub 上的 ' + state.config.dataPath + ' …');
-        state.dirty = false;
-        const synced = await pullFromGitHub({ auto: true });
-        if (synced === false) {
-          setStatus('当前显示站内 ' + state.config.dataPath + '（未同步 GitHub）。');
+        // When in local environment, strictly prioritize and stay on local resources, do not auto-overwrite from GitHub
+        if (isLocalHost()) {
+          state.dirty = false;
+          log('检测到本地运行环境，已加载本地资源：' + (state.config.dataPath || DEFAULT_CONFIG.dataPath) + '（未自动拉取远端）', 'ok');
+          setStatus('已载入本地 ' + (state.config.dataPath || DEFAULT_CONFIG.dataPath) + ' 资源（本地模式）。');
+        } else {
+          setStatus('正在同步 GitHub 上的 ' + state.config.dataPath + ' …');
+          state.dirty = false;
+          const synced = await pullFromGitHub({ auto: true });
+          if (synced === false) {
+            setStatus('当前显示站内 ' + state.config.dataPath + '（未同步 GitHub）。');
+          }
         }
       }
 

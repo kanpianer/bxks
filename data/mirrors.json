@@ -42,8 +42,13 @@
       "enabled": true
     },
     {
+      "url": "https://welib.st",
+      "label": "WeLib",
+      "enabled": true
+    },
+    {
       "url": "https://bookracy.com/",
-      "label": "Bookracy",
+      "label": "Bookracy[暂不可用]",
       "enabled": true
     },
     {
@@ -62,8 +67,18 @@
       "enabled": true
     },
     {
+      "url": "https://audiobookbay.lu",
+      "label": "AudioBook Bay",
+      "enabled": true
+    },
+    {
       "url": "https://open-slum.org",
       "label": "SLUM[影子图书馆监测]",
+      "enabled": true
+    },
+    {
+      "url": "https://oceanofpdf.com",
+      "label": "OceanofPDF",
       "enabled": true
     },
     {
@@ -135,12 +150,24 @@
     {
       "name": "WeLib",
       "domain": "https://welib.org",
-      "weight": 100,
+      "weight": 50,
+      "enabled": true
+    },
+    {
+      "name": "WeLib",
+      "domain": "https://welib.st",
+      "weight": 50,
       "enabled": true
     },
     {
       "name": "Bookracy",
       "domain": "https://bookracy.com",
+      "weight": 100,
+      "enabled": false
+    },
+    {
+      "name": "OceanofPDF",
+      "domain": "https://oceanofpdf.com",
       "weight": 100,
       "enabled": true
     }

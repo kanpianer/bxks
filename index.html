@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="dark light" />
   <title>不想看书 - 聚合主流「影子图书馆」，你的一站式找书平台</title>
-  <meta name="description" content="不想看书 — 聚合主流「影子图书馆」，你的一站式找书平台。集成 Z-Library、Anna’s Archive、Libgen、Bookracy、WeLib 等电子书库，支持一键多源聚合搜索与最新可用镜像导航。" />
+  <meta name="description" content="不想看书 — 聚合主流「影子图书馆」，你的一站式找书平台。集成 Z-Library、Anna’s Archive、Libgen、Bookracy、WeLib、OceanofPDF 等电子书库，支持一键多源聚合搜索与最新可用镜像导航。" />
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" />
@@ -464,6 +464,7 @@
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       text-rendering: optimizeLegibility;
+      touch-action: manipulation;
       /* 首页锁定单屏：内容按视口等比缩放，不产生纵向滚动 */
       overflow: hidden;
       overscroll-behavior: none;
@@ -2296,6 +2297,42 @@
             </li>
             <li role="none">
               <a
+                href="https://sci-hub.jp"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mirror-link"
+                role="menuitem"
+              >
+                <span class="mirror-domain">https://sci-hub.jp</span>
+                <span class="mirror-rec-text">Sci-Hub</span>
+              </a>
+            </li>
+            <li role="none">
+              <a
+                href="https://audiobookbay.lu"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mirror-link"
+                role="menuitem"
+              >
+                <span class="mirror-domain">https://audiobookbay.lu</span>
+                <span class="mirror-rec-text">AudioBook Bay</span>
+              </a>
+            </li>
+            <li role="none">
+              <a
+                href="https://oceanofpdf.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mirror-link"
+                role="menuitem"
+              >
+                <span class="mirror-domain">https://oceanofpdf.com</span>
+                <span class="mirror-rec-text">OceanofPDF</span>
+              </a>
+            </li>
+            <li role="none">
+              <a
                 href="https://bxks.sld.tw"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -2394,8 +2431,8 @@
             id="search-engine-btn"
             aria-haspopup="listbox"
             aria-expanded="false"
-            aria-label="选择搜索引擎"
-            title="点击切换搜索引擎"
+            aria-label="当前搜索引擎：聚合搜索，点击切换"
+            title="当前搜索引擎：聚合搜索（同时检索所有引擎）"
           >
             <!-- Default magnifying glass icon -->
             <svg class="search-icon mag-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -2403,7 +2440,7 @@
               <line x1="21" y1="21" x2="16.5" y2="16.5"></line>
             </svg>
             <!-- Current search engine icon (revealed on hover / focus / open) -->
-            <img class="engine-active-icon" id="engine-active-icon" src="assets/images/engine-zlib.svg" alt="当前搜索引擎" aria-hidden="true" />
+            <img class="engine-active-icon is-aggregate-engine" id="engine-active-icon" src="assets/images/engine-all.svg" alt="聚合搜索" aria-hidden="true" />
           </button>
 
           <!-- Dropdown menu showing available engines -->
@@ -2600,7 +2637,12 @@
         'libgen': 'assets/images/engine-libgen.svg',
         'library genesis': 'assets/images/engine-libgen.svg',
         'bookracy': 'assets/images/engine-bookracy.png',
-        'welib': 'assets/images/engine-welib.png'
+        'welib': 'assets/images/engine-welib.png',
+        'oceanofpdf': 'assets/images/engine-oceanofpdf.png',
+        'audiobook bay (abb)': 'assets/images/engine-abb.png',
+        'audiobook bay': 'assets/images/engine-abb.png',
+        'audiobookbay': 'assets/images/engine-abb.png',
+        'abb': 'assets/images/engine-abb.png'
       };
 
       function resolveEngineIcon(name, domain) {
@@ -2616,7 +2658,7 @@
         return 'assets/images/engine-zlib.svg';
       }
 
-      // Default built-in search engines configuration (Z-Library as default)
+      // Default built-in search engines configuration (聚合搜索 as default)
       let SEARCH_ENGINE_CONFIGS = [
         { name: 'Z-Library', domain: 'https://libb.la', weight: 50, enabled: true },
         { name: 'Z-Library', domain: 'https://zh.swe101.ru', weight: 25, enabled: true },
@@ -2627,28 +2669,35 @@
         { name: 'Libgen', domain: 'https://libgen.li', weight: 40, enabled: true },
         { name: 'Libgen', domain: 'https://libgen.la', weight: 30, enabled: true },
         { name: 'Libgen', domain: 'https://libgen.vg', weight: 30, enabled: true },
-        { name: 'Bookracy', domain: 'https://bookracy.com', weight: 100, enabled: true },
-        { name: 'WeLib', domain: 'https://welib.org', weight: 100, enabled: true }
+        { name: 'Bookracy', domain: 'https://bookracy.com', weight: 100, enabled: false },
+        { name: 'WeLib', domain: 'https://welib.org', weight: 50, enabled: true },
+        { name: 'WeLib', domain: 'https://welib.st', weight: 50, enabled: true },
+        { name: 'OceanofPDF', domain: 'https://oceanofpdf.com', weight: 100, enabled: true }
       ];
 
+      const ACTIVE_ENGINE_KEY = 'bxks_active_engine_v2';
       let currentEngineName = (function() {
         try {
-          return localStorage.getItem('bxks_active_engine') || 'Z-Library';
+          const saved = localStorage.getItem(ACTIVE_ENGINE_KEY);
+          if (saved) return saved;
+          return '聚合搜索';
         } catch (e) {
-          return 'Z-Library';
+          return '聚合搜索';
         }
       })();
 
       /**
        * Convert target domain and query to the appropriate search route for the engine:
-       * - Anna's Archive: https://{domain}/search?q={query}
-       * - Libgen:         https://{domain}/index.php?req={query}
-       * - Bookracy:       https://{domain}/?q={query}
-       * - WeLib:          https://{domain}/search?q={query}
-       * - Z-Library:      https://{domain}/s/{query}
+       * - Anna's Archive:     https://{domain}/search?q={query}
+       * - Libgen:             https://{domain}/index.php?req={query}
+       * - Bookracy:           https://{domain}/?q={query}
+       * - WeLib:              https://{domain}/search?q={query}
+       * - OceanofPDF:         https://{domain}/?s={query}
+       * - AudioBook Bay (ABB): https://{domain}/?s={query}
+       * - Z-Library:          https://{domain}/s/{query}
        */
       function buildSearchUrl(engineName, baseDomain, query) {
-        const domain = baseDomain.replace(/\/+$/, '');
+        const domain = String(baseDomain || '').trim().replace(/\/\?s=?$/, '').replace(/\/+$/, '');
         const encodedQuery = encodeURIComponent(query);
         const name = String(engineName || '').toLowerCase();
         const host = domain.toLowerCase();
@@ -2665,6 +2714,12 @@
         if (name.includes('welib') || host.includes('welib')) {
           return `${domain}/search?q=${encodedQuery}`;
         }
+        if (name.includes('oceanofpdf') || host.includes('oceanofpdf')) {
+          return `${domain}/?s=${encodedQuery}`;
+        }
+        if (name.includes('audiobook') || name.includes('abb') || host.includes('audiobookbay')) {
+          return `${domain}/?s=${encodedQuery}`;
+        }
         if (name.includes('z-lib') || name.includes('zlibrary') || host.includes('libb') || host.includes('swe101') || host.includes('101isfj') || host.includes('z-lib')) {
           return `${domain}/s/${encodedQuery}`;
         }
@@ -2674,14 +2729,14 @@
       function selectEngineMirror(engineName) {
         const targetName = String(engineName || '').trim().toLowerCase();
         let mirrors = SEARCH_ENGINE_CONFIGS.filter((e) => {
-          return e && e.domain && String(e.name || '').trim().toLowerCase() === targetName;
+          return e && e.domain && String(e.name || '').trim().toLowerCase() === targetName && e.enabled !== false;
         });
 
         if (!mirrors.length) {
-          mirrors = SEARCH_ENGINE_CONFIGS.filter((e) => e && e.domain);
+          mirrors = SEARCH_ENGINE_CONFIGS.filter((e) => e && e.domain && e.enabled !== false);
         }
 
-        const active = mirrors.filter((e) => e.enabled !== false && Number(e.weight) > 0);
+        const active = mirrors.filter((e) => Number(e.weight) > 0);
         const pool = active.length ? active : mirrors;
         if (!pool.length) return { domain: '', name: engineName };
 
@@ -2702,6 +2757,7 @@
       function getDistinctEngines() {
         const map = new Map();
         for (const item of SEARCH_ENGINE_CONFIGS) {
+          if (item.enabled === false) continue;
           const name = String(item.name || '').trim() || '通用';
           if (!map.has(name)) {
             map.set(name, {
@@ -2735,8 +2791,9 @@
         } else {
           let active = engines.find((e) => e.name.toLowerCase() === currentEngineName.toLowerCase());
           if (!active) {
-            active = engines[0];
-            currentEngineName = active.name;
+            currentEngineName = '聚合搜索';
+            updateActiveEngineUI();
+            return;
           }
 
           if (activeIconEl) {
@@ -2759,6 +2816,7 @@
         });
 
         try {
+          localStorage.setItem(ACTIVE_ENGINE_KEY, currentEngineName);
           localStorage.setItem('bxks_active_engine', currentEngineName);
         } catch (e) {}
       }
@@ -4250,7 +4308,7 @@
       const MIRROR_DATA_URL = 'data/mirrors.json';
 
       function normalizeMirrorUrl(url) {
-        return String(url || '').trim().replace(/\/+$/, '');
+        return String(url || '').trim().replace(/\/\?s=?$/, '').replace(/\/+$/, '');
       }
 
       function renderMirrorList(data) {
@@ -4317,6 +4375,8 @@
               else if (d.includes('libgen')) name = 'Libgen';
               else if (d.includes('bookracy')) name = 'Bookracy';
               else if (d.includes('welib')) name = 'WeLib';
+              else if (d.includes('oceanofpdf')) name = 'OceanofPDF';
+              else if (d.includes('audiobookbay') || d.includes('abb')) name = 'AudioBook Bay (ABB)';
               else name = 'Z-Library';
             }
             return {
@@ -4394,6 +4454,50 @@
             titleWrapper.addEventListener('mouseenter', dismissHint);
           }
         }
+      })();
+
+      // Secret CMS Entry: Continuously click blank area 5 times within 1.5 seconds to open CMS
+      (function initSecretCmsTrigger() {
+        const REQUIRED_CLICKS = 5;
+        const TIME_WINDOW_MS = 1500;
+        let clickTimestamps = [];
+
+        function isInteractive(element) {
+          if (!element || !(element instanceof Element)) return false;
+
+          // If dropdown menu or modal dialog is currently visible, clicking is interacting with or dismissing it
+          const mirrorOpen = document.getElementById('brand-title-wrapper')?.classList.contains('is-open');
+          const engineOpen = document.getElementById('search-engine-selector')?.classList.contains('is-open');
+          const modalOpen = document.getElementById('aggregate-modal-backdrop')?.classList.contains('is-visible');
+          if (mirrorOpen || engineOpen || modalOpen) return true;
+
+          return !!element.closest(
+            'a, button, input, textarea, select, label, [role="button"], [role="menuitem"], [role="option"], [role="dialog"], #search-form, #search-engine-selector, #mirror-dropdown, #title-hint-tooltip, .aggregate-modal-card'
+          );
+        }
+
+        document.addEventListener('click', (event) => {
+          if (isInteractive(event.target)) {
+            clickTimestamps = [];
+            return;
+          }
+
+          // If user is selecting text, do not treat as blank area click
+          if (window.getSelection && window.getSelection().toString().trim()) {
+            clickTimestamps = [];
+            return;
+          }
+
+          const now = Date.now();
+          clickTimestamps = clickTimestamps.filter((time) => now - time <= TIME_WINDOW_MS);
+          clickTimestamps.push(now);
+
+          if (clickTimestamps.length >= REQUIRED_CLICKS) {
+            clickTimestamps = [];
+            const isFile = window.location.protocol === 'file:';
+            window.location.href = isFile ? 'dtms/index.html' : 'dtms/';
+          }
+        }, true);
       })();
     })();
   </script>
