@@ -118,6 +118,12 @@
 
     .topbar .spacer { flex: 1 1 auto; }
 
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     .theme-toggle-btn {
       width: 34px;
       height: 34px;
@@ -248,6 +254,9 @@
     .row .grow { flex: 1 1 240px; min-width: 0; }
     .row .w-label { flex: 0 1 168px; min-width: 120px; }
     .row .w-name { flex: 0 1 180px; min-width: 130px; }
+    .row .w-icon { flex: 0 1 125px; min-width: 80px; }
+    .row .w-text { flex: 0 1 125px; min-width: 80px; }
+    .row .w-url { flex: 0 1 180px; min-width: 110px; }
     .row .w-weight { flex: 0 0 84px; }
     .row .pct {
       flex: 0 0 52px;
@@ -256,7 +265,34 @@
       text-align: right;
       font-variant-numeric: tabular-nums;
     }
+    .row .icon-preview-box {
+      width: 32px;
+      height: 32px;
+      border-radius: 7px;
+      border: 1px solid var(--search-border);
+      background: var(--search-bg);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .row .icon-preview-img {
+      width: 18px;
+      height: 18px;
+      object-fit: contain;
+      display: none;
+    }
+    .row .icon-preview-placeholder {
+      width: 16px;
+      height: 16px;
+      color: var(--fg-subtle);
+      opacity: 0.55;
+      display: block;
+    }
     .row .actions { display: flex; gap: 2px; margin-left: auto; }
+    #footer-rows .row .check { margin-left: auto; }
+    #footer-rows .row .actions { margin-left: 0; }
 
     .icon-btn {
       width: 30px;
@@ -291,13 +327,36 @@
       color: var(--btn-fg);
       cursor: pointer;
       white-space: nowrap;
-      transition: background-color 0.15s ease, opacity 0.15s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      line-height: normal;
+      transition: background-color 0.15s ease, opacity 0.15s ease, color 0.15s ease, border-color 0.15s ease;
       -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn:hover,
+    .btn:focus,
+    .btn:active,
+    a.btn,
+    a.btn:hover,
+    a.btn:focus,
+    a.btn:active,
+    a.btn:visited {
+      text-decoration: none;
     }
 
     .btn:hover { background: var(--btn-bg-hover); }
     .btn:disabled { opacity: 0.45; cursor: not-allowed; }
     .btn:focus-visible { outline: 2px solid var(--search-focus-border); outline-offset: 2px; }
+
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 0.76rem;
+      border-radius: 6px;
+    }
 
     .btn-ghost {
       background: transparent;
@@ -346,7 +405,11 @@
     @media (max-width: 560px) {
       .row .w-name { flex: 1 1 130px; }
       .row .w-label { flex: 1 1 130px; }
+      .row .w-icon { flex: 1 1 110px; }
+      .row .w-text { flex: 1 1 110px; }
+      .row .w-url { flex: 1 1 140px; }
       .row .actions { margin-left: 0; }
+      #footer-rows .row .check { margin-left: 0; }
     }
   </style>
 </head>
@@ -355,6 +418,10 @@
     <a class="back" href="../index.html">← 不想看书</a>
     <h1>镜像内容管理</h1>
     <span class="spacer"></span>
+    <div class="topbar-actions">
+      <button id="btn-quick-save" class="btn btn-sm btn-primary" type="button" title="保存本地更改 (Ctrl+S)">💾 保存</button>
+      <a id="btn-quick-preview" class="btn btn-sm btn-ghost" href="../index.html" target="_blank" title="在新标签页预览主站">👁️ 预览主站 ↗</a>
+    </div>
     <button id="theme-toggle-btn" class="theme-toggle-btn" type="button" aria-label="切换黑白主题" title="切换黑白主题">
       <svg class="theme-icon icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="4.2"></circle>
@@ -405,7 +472,23 @@
       </div>
     </section>
 
-    <!-- 3. Dropdown header -->
+    <!-- 3. Footer links -->
+    <section class="panel">
+      <h2>页脚链接</h2>
+      <p class="desc">首页底部展示的相关站点与友情链接；支持设置超链接图标、显示文字与目标链接，可调整上下显示顺序与启用开关。</p>
+      <datalist id="footer-icon-presets">
+        <option value="https://bxkp.org/favicon.svg">不想看片 Favicon</option>
+        <option value="assets/images/jiakuan-icon.png">家宽导航 Icon</option>
+        <option value="favicon.svg">不想看书 Favicon</option>
+      </datalist>
+      <div class="rows" id="footer-rows"></div>
+      <div class="actions-bar">
+        <button id="btn-add-footer" class="btn btn-ghost" type="button">＋ 添加页脚链接</button>
+        <span class="hint" id="footer-count" style="margin: 0;"></span>
+      </div>
+    </section>
+
+    <!-- 4. Dropdown header -->
     <section class="panel">
       <h2>下拉框标题</h2>
       <p class="desc">显示在镜像列表顶部的标题与右侧提示文字。</p>
@@ -415,29 +498,34 @@
       </div>
     </section>
 
-    <!-- 4. Commit -->
+    <!-- 5. Commit -->
     <section class="panel">
-      <h2>提交更新</h2>
-      <p class="desc">提交前会自动检查远端是否有新改动，避免覆盖别人的修改。</p>
+      <h2>保存与提交</h2>
+      <p class="desc">本地编辑时可先点击「保存更改」并在主站即时预览；确认满意后，再填写提交说明并「提交到 GitHub」同步发布。</p>
+      <div class="actions-bar" style="margin-top: 0; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px dashed var(--search-border);">
+        <button id="btn-save-local" class="btn btn-primary" type="button">💾 保存更改 (本地生效)</button>
+        <a id="btn-preview-page" class="btn btn-ghost" href="../index.html" target="_blank">👁️ 预览主站 ↗</a>
+        <span class="hint" id="local-save-hint" style="margin: 0;">支持快捷键 Ctrl+S 保存</span>
+      </div>
       <div class="field" style="margin-bottom: 12px;">
         <span>提交说明 commit message</span>
         <input id="commit-message" type="text" spellcheck="false" placeholder="chore(mirrors): update mirror list" />
       </div>
       <div class="actions-bar">
-        <button id="btn-save" class="btn" type="button">提交更新</button>
+        <button id="btn-save" class="btn" type="button">🚀 提交到 GitHub</button>
         <button id="btn-export-json" class="btn btn-ghost" type="button">下载 JSON 文件</button>
         <label class="check"><input id="force" type="checkbox" /> 强制覆盖远端</label>
       </div>
       <p class="hint" id="status-line">正在同步 GitHub 最新内容 …</p>
     </section>
 
-    <!-- 5. Log -->
+    <!-- 6. Log -->
     <section class="panel">
       <h2>日志</h2>
       <pre id="log"></pre>
     </section>
 
-    <!-- 6. Repository & token -->
+    <!-- 7. Repository & token -->
     <section class="panel">
       <h2>仓库与令牌</h2>
       <p class="desc">
@@ -478,6 +566,8 @@
     </datalist>
   </main>
 
+  <div id="cms-toast" class="cms-toast" role="status" aria-live="polite"></div>
+
   <script>
     (function () {
       'use strict';
@@ -501,6 +591,7 @@
         dropdown: { title: 'Z-Library 镜像列表', tip: '点击访问' },
         mirrors: [],
         searchEngines: [],
+        footerLinks: [],
         baselineText: null,
         baselineSource: '',
         remoteSha: null,
@@ -555,6 +646,10 @@
         verify: $('btn-verify'),
         pull: $('btn-pull'),
         save: $('btn-save'),
+        saveLocal: $('btn-save-local'),
+        quickSave: $('btn-quick-save'),
+        quickPreview: $('btn-quick-preview'),
+        previewPage: $('btn-preview-page'),
         exportJson: $('btn-export-json'),
         reloadLocal: $('btn-reload-local'),
         force: $('force'),
@@ -563,16 +658,20 @@
         log: $('log'),
         mirrorRows: $('mirror-rows'),
         engineRows: $('engine-rows'),
+        footerRows: $('footer-rows'),
         mirrorCount: $('mirror-count'),
         engineTotal: $('engine-total'),
+        footerCount: $('footer-count'),
         addMirror: $('btn-add-mirror'),
         addEngine: $('btn-add-engine'),
         fillEngines: $('btn-fill-engines'),
+        addFooter: $('btn-add-footer'),
         dropdownTitle: $('dropdown-title'),
         dropdownTip: $('dropdown-tip'),
         pathEcho: $('path-echo'),
         domainEcho: $('domain-echo'),
-        themeToggle: $('theme-toggle-btn')
+        themeToggle: $('theme-toggle-btn'),
+        toast: $('cms-toast')
       };
 
       /* ========================================================
@@ -594,9 +693,34 @@
 
       function setBusy(busy) {
         state.busy = busy;
-        [els.verify, els.pull, els.save, els.addMirror, els.addEngine, els.fillEngines].forEach(function (btn) {
+        [els.verify, els.pull, els.save, els.saveLocal, els.quickSave, els.addMirror, els.addEngine, els.fillEngines, els.addFooter].forEach(function (btn) {
           if (btn) btn.disabled = busy;
         });
+      }
+
+      let toastTimer = null;
+      function showToast(message, actionText, actionHref) {
+        if (!els.toast) return;
+        if (toastTimer) clearTimeout(toastTimer);
+
+        els.toast.replaceChildren();
+        const span = document.createElement('span');
+        span.textContent = message;
+        els.toast.appendChild(span);
+
+        if (actionText && actionHref) {
+          const a = document.createElement('a');
+          a.className = 'cms-toast-link';
+          a.href = actionHref;
+          a.target = '_blank';
+          a.textContent = actionText;
+          els.toast.appendChild(a);
+        }
+
+        els.toast.classList.add('show');
+        toastTimer = setTimeout(function () {
+          els.toast.classList.remove('show');
+        }, 4000);
       }
 
       function markDirty() {
@@ -735,6 +859,44 @@
         return { name: (last && last.name) || 'Anna’s Archive', domain: '', weight: 25, enabled: true };
       }
 
+      function newFooterLink() {
+        return { icon: '', text: '', url: '', enabled: true };
+      }
+
+      function resolveIconUrl(src) {
+        if (!src) return '';
+        src = String(src).trim();
+        if (/^https?:\/\//i.test(src) || src.startsWith('data:') || src.startsWith('/')) {
+          return src;
+        }
+        return '../' + src.replace(/^\.\//, '');
+      }
+
+      function updateRowIconPreview(row, iconSrc) {
+        if (!row) return;
+        const img = row.querySelector('.icon-preview-img');
+        const ph = row.querySelector('.icon-preview-placeholder');
+        if (!img || !ph) return;
+
+        const resolved = resolveIconUrl(iconSrc);
+        if (!resolved) {
+          img.removeAttribute('src');
+          img.style.display = 'none';
+          ph.style.display = 'block';
+          return;
+        }
+
+        img.onload = function () {
+          img.style.display = 'block';
+          ph.style.display = 'none';
+        };
+        img.onerror = function () {
+          img.style.display = 'none';
+          ph.style.display = 'block';
+        };
+        img.src = resolved;
+      }
+
       function renderMirrors() {
         const frag = document.createDocumentFragment();
 
@@ -832,10 +994,91 @@
         updateCounts();
       }
 
+      function renderFooterRows() {
+        const frag = document.createDocumentFragment();
+
+        state.footerLinks.forEach(function (item, index) {
+          const previewImg = el('img', {
+            class: 'icon-preview-img',
+            alt: ''
+          });
+
+          const previewPlaceholder = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          previewPlaceholder.setAttribute('class', 'icon-preview-placeholder');
+          previewPlaceholder.setAttribute('viewBox', '0 0 24 24');
+          previewPlaceholder.setAttribute('fill', 'none');
+          previewPlaceholder.setAttribute('stroke', 'currentColor');
+          previewPlaceholder.setAttribute('stroke-width', '2');
+          previewPlaceholder.setAttribute('stroke-linecap', 'round');
+          previewPlaceholder.setAttribute('stroke-linejoin', 'round');
+          previewPlaceholder.innerHTML = '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>';
+
+          const previewBox = el('div', { class: 'icon-preview-box', title: '图标预览' }, [previewImg, previewPlaceholder]);
+
+          const iconInput = el('input', {
+            type: 'text',
+            class: 'f-icon',
+            list: 'footer-icon-presets',
+            spellcheck: 'false',
+            placeholder: '图标路径 / URL',
+            'aria-label': '页脚链接图标 ' + (index + 1),
+            value: item.icon || ''
+          });
+
+          const textInput = el('input', {
+            type: 'text',
+            class: 'f-text',
+            spellcheck: 'false',
+            placeholder: '显示文字',
+            'aria-label': '页脚链接文字 ' + (index + 1),
+            value: item.text || ''
+          });
+
+          const urlInput = el('input', {
+            type: 'text',
+            class: 'f-url',
+            spellcheck: 'false',
+            placeholder: 'https://example.com',
+            'aria-label': '页脚目标链接 ' + (index + 1),
+            value: item.url || ''
+          });
+
+          const enabledBox = el('input', { type: 'checkbox', class: 'f-enabled' });
+          enabledBox.checked = item.enabled !== false;
+
+          const actions = el('div', { class: 'actions' }, [
+            el('button', { type: 'button', class: 'icon-btn', 'data-act': 'up', title: '上移', 'aria-label': '上移', text: '↑', disabled: index === 0 }),
+            el('button', { type: 'button', class: 'icon-btn', 'data-act': 'down', title: '下移', 'aria-label': '下移', text: '↓', disabled: index === state.footerLinks.length - 1 }),
+            el('button', { type: 'button', class: 'icon-btn del-btn', 'data-act': 'del', title: '删除这一条', 'aria-label': '删除这一条', text: '删除' })
+          ]);
+
+          const row = el('div', { class: 'row', 'data-index': String(index) }, [
+            previewBox,
+            el('div', { class: 'w-icon' }, [iconInput]),
+            el('div', { class: 'w-text' }, [textInput]),
+            el('div', { class: 'w-url' }, [urlInput]),
+            el('label', { class: 'check' }, [enabledBox, el('span', { text: '启用' })]),
+            actions
+          ]);
+
+          updateRowIconPreview(row, item.icon);
+          frag.appendChild(row);
+        });
+
+        els.footerRows.replaceChildren(frag);
+        updateCounts();
+      }
+
       function updateCounts() {
         const mirrorTotal = state.mirrors.length;
         const mirrorOn = state.mirrors.filter(function (m) { return m.enabled !== false && String(m.url).trim(); }).length;
         els.mirrorCount.textContent = '共 ' + mirrorTotal + ' 条，启用 ' + mirrorOn + ' 条';
+
+        const footerTotal = state.footerLinks.length;
+        const footerOn = state.footerLinks.filter(function (f) {
+          return f.enabled !== false && String(f.url || f.text).trim();
+        }).length;
+        els.footerCount.textContent = '共 ' + footerTotal + ' 条，启用 ' + footerOn + ' 条';
 
         // Calculate weights grouped by website name
         const groupTotals = {};
@@ -1006,6 +1249,57 @@
             log('没有需要补全的镜像域名');
           }
         });
+
+        function handleFooterChange(event) {
+          const index = rowIndex(event);
+          const item = state.footerLinks[index];
+          if (!item) return;
+          const row = event.target.closest('.row[data-index]');
+          if (event.target.classList.contains('f-icon')) {
+            item.icon = event.target.value;
+            updateRowIconPreview(row, item.icon);
+          } else if (event.target.classList.contains('f-text')) {
+            item.text = event.target.value;
+          } else if (event.target.classList.contains('f-url')) {
+            item.url = event.target.value;
+          } else if (event.target.classList.contains('f-enabled')) {
+            item.enabled = event.target.checked;
+          }
+          markDirty();
+          updateCounts();
+        }
+
+        els.footerRows.addEventListener('input', handleFooterChange);
+        els.footerRows.addEventListener('change', handleFooterChange);
+
+        els.footerRows.addEventListener('click', function (event) {
+          const button = event.target.closest('button[data-act]');
+          if (!button) return;
+          const index = rowIndex(event);
+          if (index < 0) return;
+          const act = button.dataset.act;
+
+          if (act === 'up' && index > 0) {
+            state.footerLinks.splice(index - 1, 0, state.footerLinks.splice(index, 1)[0]);
+          } else if (act === 'down' && index < state.footerLinks.length - 1) {
+            state.footerLinks.splice(index + 1, 0, state.footerLinks.splice(index, 1)[0]);
+          } else if (act === 'del') {
+            state.footerLinks.splice(index, 1);
+            if (!state.footerLinks.length) state.footerLinks.push(newFooterLink());
+          } else {
+            return;
+          }
+          markDirty();
+          renderFooterRows();
+        });
+
+        els.addFooter.addEventListener('click', function () {
+          state.footerLinks.push(newFooterLink());
+          markDirty();
+          renderFooterRows();
+          const inputs = els.footerRows.querySelectorAll('.f-text');
+          if (inputs.length) inputs[inputs.length - 1].focus();
+        });
       }
 
       /* ========================================================
@@ -1016,6 +1310,17 @@
           return {
             url: String((item && item.url) || '').trim(),
             label: String((item && item.label) || '').trim(),
+            enabled: !item || item.enabled !== false
+          };
+        });
+      }
+
+      function normalizeFooterLinks(list) {
+        return (Array.isArray(list) ? list : []).map(function (item) {
+          return {
+            icon: String((item && item.icon) || '').trim(),
+            text: String((item && item.text) || '').trim(),
+            url: String((item && item.url) || '').trim(),
             enabled: !item || item.enabled !== false
           };
         });
@@ -1052,11 +1357,14 @@
         };
         state.mirrors = normalizeMirrors(data && data.mirrors);
         state.searchEngines = normalizeEngines(data && data.searchEngines);
+        state.footerLinks = normalizeFooterLinks(data && data.footerLinks);
         if (!state.mirrors.length) state.mirrors.push(newMirror());
         if (!state.searchEngines.length) state.searchEngines.push(newEngine());
+        if (!state.footerLinks.length) state.footerLinks.push(newFooterLink());
         syncFormFromState();
         renderMirrors();
         renderEngines();
+        renderFooterRows();
       }
 
       function buildDocumentText() {
@@ -1082,6 +1390,17 @@
             };
           });
 
+        const footerLinks = state.footerLinks
+          .filter(function (item) { return String(item.url || item.text).trim(); })
+          .map(function (item) {
+            return {
+              text: String(item.text || '').trim(),
+              url: String(item.url || '').trim(),
+              icon: String(item.icon || '').trim(),
+              enabled: item.enabled !== false
+            };
+          });
+
         const doc = {
           version: 1,
           updatedAt: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
@@ -1090,7 +1409,8 @@
             tip: String(state.dropdown.tip || '').trim()
           },
           mirrors: mirrors,
-          searchEngines: engines
+          searchEngines: engines,
+          footerLinks: footerLinks
         };
 
         return JSON.stringify(doc, null, 2) + '\n';
@@ -1250,11 +1570,82 @@
         } catch (error) {
           state.mirrors = [newMirror()];
           state.searchEngines = [newEngine()];
+          state.footerLinks = [newFooterLink()];
           syncFormFromState();
           renderMirrors();
           renderEngines();
+          renderFooterRows();
           log('无法载入站内数据（' + error.message + '），已从空白开始', 'warn');
         }
+      }
+
+      async function saveLocalChanges() {
+        if (state.busy) return;
+        const text = buildDocumentText();
+        let doc;
+        try {
+          doc = JSON.parse(text);
+        } catch (error) {
+          log('生成的数据不是合法 JSON，无法保存：' + error.message, 'err');
+          return false;
+        }
+
+        setBusy(true);
+        setStatus('正在保存本地更改 …');
+
+        // 1. Always save to browser localStorage for instant cross-tab live preview
+        try {
+          localStorage.setItem('bxks_preview_mirrors', text);
+          localStorage.setItem('bxks_preview_saved_at', new Date().toISOString());
+        } catch (e) {
+          console.warn('localStorage save failed:', e);
+        }
+
+        let savedToServer = false;
+
+        // 2. If running in local environment, attempt to persist to disk via dev server
+        if (isLocalHost()) {
+          try {
+            const res = await fetch('/api/cms/save', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                data: doc,
+                note: 'CMS 本地保存'
+              })
+            });
+            if (res.ok) {
+              const resData = await res.json();
+              if (resData.success) {
+                savedToServer = true;
+                log('已保存到本地文件 ' + (resData.path || 'data/mirrors.json') + (resData.backup ? '（快照备份: ' + resData.backup + '）' : ''), 'ok');
+              }
+            }
+          } catch (e) {
+            // Dev server might not support POST or be a plain server
+          }
+        }
+
+        state.baselineText = text;
+        state.dirty = false;
+        setBusy(false);
+
+        // Visual feedback on save buttons
+        const saveBtns = [els.saveLocal, els.quickSave].filter(Boolean);
+        const originalTexts = saveBtns.map(function (b) { return b.textContent; });
+        saveBtns.forEach(function (b) { b.textContent = '已保存 ✓'; });
+        setTimeout(function () {
+          saveBtns.forEach(function (b, i) { b.textContent = originalTexts[i]; });
+        }, 1600);
+
+        if (savedToServer) {
+          setStatus('已保存到本地 data/mirrors.json 文件，可在主站直接刷新或预览。满意后再提交到 GitHub。');
+          showToast('✅ 已保存到本地文件！', '预览主站 ↗', '../index.html');
+        } else {
+          setStatus('已保存到本地浏览器草稿，可在主站直接预览效果。满意后再提交到 GitHub。');
+          showToast('✅ 已保存到本地草稿！', '预览主站 ↗', '../index.html');
+        }
+        return true;
       }
 
       async function saveToGitHub() {
@@ -1328,10 +1719,12 @@
           state.baselineText = text;
           state.baselineSource = 'github';
           state.dirty = false;
+          try { localStorage.removeItem('bxks_preview_mirrors'); } catch (e) {}
 
           log('提交成功：' + message, 'ok');
           if (result.commit && result.commit.html_url) log(result.commit.html_url, 'ok');
           setStatus('已提交，GitHub Pages 通常 1 分钟内生效。');
+          showToast('🚀 已成功提交到 GitHub！');
         } catch (error) {
           log('提交失败：' + error.message, 'err');
           setStatus('提交失败。');
@@ -1367,7 +1760,7 @@
 
       function exportToFile() {
         try {
-          const text = exportDocument();
+          const text = buildDocumentText();
           const blob = new Blob([text], { type: 'application/json;charset=utf-8' });
           const a = document.createElement('a');
           a.href = URL.createObjectURL(blob);
@@ -1401,16 +1794,36 @@
         els.verify.addEventListener('click', verifyToken);
         els.pull.addEventListener('click', function () { pullFromGitHub(); });
         els.save.addEventListener('click', saveToGitHub);
+        if (els.saveLocal) els.saveLocal.addEventListener('click', saveLocalChanges);
+        if (els.quickSave) els.quickSave.addEventListener('click', saveLocalChanges);
         if (els.exportJson) els.exportJson.addEventListener('click', exportToFile);
         if (els.reloadLocal) els.reloadLocal.addEventListener('click', async function () {
           if (state.dirty && !window.confirm('当前有未保存的修改，重新载入本地文件将覆盖它们。继续？')) return;
+          try { localStorage.removeItem('bxks_preview_mirrors'); } catch (e) {}
           setBusy(true);
           setStatus('正在重新载入本地资源 …');
           try {
             await loadLocalFallback();
             setStatus('已载入本地 ' + (state.config.dataPath || DEFAULT_CONFIG.dataPath) + ' 资源');
+            showToast('已重新载入本地资源');
           } finally {
             setBusy(false);
+          }
+        });
+
+        // Keyboard shortcut Ctrl/Cmd + S to save
+        window.addEventListener('keydown', function (e) {
+          if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
+            e.preventDefault();
+            saveLocalChanges();
+          }
+        });
+
+        // Warn before leaving if there are unsaved changes
+        window.addEventListener('beforeunload', function (e) {
+          if (state.dirty) {
+            e.preventDefault();
+            e.returnValue = '';
           }
         });
 

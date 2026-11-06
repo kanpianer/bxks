@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-24T16:04:14Z",
+  "updatedAt": "2026-11-06T14:06:09Z",
   "dropdown": {
     "title": "「影子图书馆」网址列表",
     "tip": "点击访问"
@@ -29,7 +29,7 @@
     {
       "url": "https://z-lib.gd",
       "label": "需代理",
-      "enabled": true
+      "enabled": false
     },
     {
       "url": "https://library-access.sk",
@@ -48,8 +48,8 @@
     },
     {
       "url": "https://bookracy.com/",
-      "label": "Bookracy[暂不可用]",
-      "enabled": true
+      "label": "Bookracy",
+      "enabled": false
     },
     {
       "url": "https://libgen.li",
@@ -59,6 +59,11 @@
     {
       "url": "https://annas-archive.pk/",
       "label": "Anna’s Archive",
+      "enabled": true
+    },
+    {
+      "url": "https://oceanofpdf.com",
+      "label": "OceanofPDF",
       "enabled": true
     },
     {
@@ -74,11 +79,6 @@
     {
       "url": "https://open-slum.org",
       "label": "SLUM[影子图书馆监测]",
-      "enabled": true
-    },
-    {
-      "url": "https://oceanofpdf.com",
-      "label": "OceanofPDF",
       "enabled": true
     },
     {
@@ -101,7 +101,7 @@
     },
     {
       "name": "Z-Library",
-      "domain": "https://zh.swe101.ru",
+      "domain": "https://z-lib.sk",
       "weight": 25,
       "enabled": true
     },
@@ -139,7 +139,7 @@
       "name": "Libgen",
       "domain": "https://libgen.la",
       "weight": 25,
-      "enabled": false
+      "enabled": true
     },
     {
       "name": "Libgen",
@@ -150,13 +150,19 @@
     {
       "name": "WeLib",
       "domain": "https://welib.org",
-      "weight": 50,
+      "weight": 75,
       "enabled": true
     },
     {
       "name": "WeLib",
       "domain": "https://welib.st",
-      "weight": 50,
+      "weight": 25,
+      "enabled": true
+    },
+    {
+      "name": "OceanofPDF",
+      "domain": "https://oceanofpdf.com",
+      "weight": 100,
       "enabled": true
     },
     {
@@ -164,11 +170,25 @@
       "domain": "https://bookracy.com",
       "weight": 100,
       "enabled": false
+    }
+  ],
+  "footerLinks": [
+    {
+      "text": "不想看片",
+      "url": "https://bxkp.org",
+      "icon": "",
+      "enabled": true
     },
     {
-      "name": "OceanofPDF",
-      "domain": "https://oceanofpdf.com",
-      "weight": 100,
+      "text": "不想翻墙",
+      "url": "https://fan.jiakuan.link",
+      "icon": "",
+      "enabled": true
+    },
+    {
+      "text": "全家宽机场·RESIP",
+      "url": "https://jiakuan.link/resip",
+      "icon": "",
       "enabled": true
     }
   ]

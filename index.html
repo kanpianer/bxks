@@ -1908,6 +1908,11 @@
 
     .footer-links {
       margin: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 4px 6px;
       font-size: clamp(0.82rem, 1.8vw, 0.9rem);
       color: var(--fg-subtle);
       line-height: 1.6;
@@ -1915,6 +1920,10 @@
     }
 
     .footer-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      vertical-align: middle;
       color: var(--fg-muted);
       text-decoration: underline;
       text-decoration-thickness: 1px;
@@ -1926,6 +1935,34 @@
     .footer-link:hover {
       color: var(--fg);
       text-decoration-color: var(--fg);
+    }
+
+    .footer-link-icon {
+      width: 15px;
+      height: 15px;
+      object-fit: contain;
+      flex-shrink: 0;
+      border-radius: 2px;
+      display: inline-block;
+      vertical-align: middle;
+      opacity: 0.88;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+
+    .footer-link:hover .footer-link-icon {
+      opacity: 1;
+      transform: scale(1.08);
+    }
+
+    .footer-link-text {
+      vertical-align: middle;
+    }
+
+    .footer-sep {
+      color: var(--fg-subtle);
+      user-select: none;
+      margin: 0 1px;
+      font-size: 0.82rem;
     }
 
     [data-theme="light"] .footer-link {
@@ -2488,9 +2525,17 @@
 
     <!-- Footer Related Links -->
     <footer class="app-footer" aria-label="相关站点链接">
-      <p class="footer-links">
-        不想看片：<a href="https://bxkp.org" target="_blank" rel="noopener noreferrer" class="footer-link">bxkp.org</a>、不想翻墙：<a href="https://fan.jiakuan.link" target="_blank" rel="noopener noreferrer" class="footer-link">fan.jiakuan.link</a>
-      </p>
+      <div class="footer-links" id="footer-links">
+        <a href="https://bxkp.org" target="_blank" rel="noopener noreferrer" class="footer-link">
+          <img src="https://bxkp.org/favicon.svg" class="footer-link-icon" alt="" aria-hidden="true" onerror="this.style.display='none'" />
+          <span class="footer-link-text">不想看片：bxkp.org</span>
+        </a>
+        <span class="footer-sep" aria-hidden="true">、</span>
+        <a href="https://fan.jiakuan.link" target="_blank" rel="noopener noreferrer" class="footer-link">
+          <img src="assets/images/jiakuan-icon.png" class="footer-link-icon" alt="" aria-hidden="true" onerror="this.style.display='none'" />
+          <span class="footer-link-text">不想翻墙：fan.jiakuan.link</span>
+        </a>
+      </div>
     </footer>
 
     <!-- Mobile Virtual Keyboard Bottom Spacing Anchor -->
@@ -4396,17 +4441,134 @@
         updateActiveEngineUI();
       }
 
+      function renderFooterLinks(footerLinks) {
+        const container = document.getElementById('footer-links');
+        const footer = document.querySelector('.app-footer');
+        if (!container) return;
+        if (!Array.isArray(footerLinks)) return;
+
+        const items = footerLinks.filter((item) => item && (item.url || item.text) && item.enabled !== false);
+        if (!items.length) {
+          container.replaceChildren();
+          if (footer) footer.style.display = 'none';
+          return;
+        }
+
+        if (footer) footer.style.display = '';
+        const frag = document.createDocumentFragment();
+        items.forEach((item, index) => {
+          if (index > 0) {
+            const sep = document.createElement('span');
+            sep.className = 'footer-sep';
+            sep.setAttribute('aria-hidden', 'true');
+            sep.textContent = '、';
+            frag.appendChild(sep);
+          }
+
+          const a = document.createElement('a');
+          a.href = String(item.url || '#').trim();
+          if (item.url) {
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+          }
+          a.className = 'footer-link';
+
+          const iconSrc = String(item.icon || '').trim();
+          if (iconSrc) {
+            const img = document.createElement('img');
+            img.src = iconSrc;
+            img.className = 'footer-link-icon';
+            img.alt = '';
+            img.setAttribute('aria-hidden', 'true');
+            img.onerror = function () { this.style.display = 'none'; };
+            a.appendChild(img);
+          }
+
+          const textSpan = document.createElement('span');
+          textSpan.className = 'footer-link-text';
+          textSpan.textContent = String(item.text || item.url).trim();
+          a.appendChild(textSpan);
+
+          frag.appendChild(a);
+        });
+
+        container.replaceChildren(frag);
+      }
+
+      function isLocalHost() {
+        const host = window.location.hostname;
+        if (window.location.protocol === 'file:') return true;
+        if (!host) return true;
+        return (
+          host === 'localhost' ||
+          host === '127.0.0.1' ||
+          host === '0.0.0.0' ||
+          host === '[::1]' ||
+          host.endsWith('.local') ||
+          host.startsWith('192.168.') ||
+          host.startsWith('10.') ||
+          /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(host)
+        );
+      }
+
+      function applyAllData(data) {
+        if (!data) return;
+        renderMirrorList(data);
+        applySearchEngineData(data.searchEngines);
+        renderFooterLinks(data.footerLinks);
+      }
+
       // Initial render with built-in configurations
       renderEngineDropdown();
       updateActiveEngineUI();
 
+      // In local preview environment, support instant cross-tab sync & draft preview
+      if (isLocalHost()) {
+        try {
+          const rawDraft = localStorage.getItem('bxks_preview_mirrors');
+          if (rawDraft) {
+            applyAllData(JSON.parse(rawDraft));
+          }
+        } catch (e) {}
+
+        window.addEventListener('storage', (e) => {
+          if (e.key === 'bxks_preview_mirrors') {
+            if (e.newValue) {
+              try {
+                applyAllData(JSON.parse(e.newValue));
+              } catch (err) {}
+            } else {
+              fetch(MIRROR_DATA_URL, { cache: 'no-cache' })
+                .then((res) => (res.ok ? res.json() : Promise.reject()))
+                .then(applyAllData)
+                .catch(() => {});
+            }
+          }
+        });
+      }
+
       fetch(MIRROR_DATA_URL, { cache: 'no-cache' })
         .then((res) => (res.ok ? res.json() : Promise.reject(new Error('HTTP ' + res.status))))
         .then((data) => {
-          renderMirrorList(data);
-          applySearchEngineData(data && data.searchEngines);
+          if (isLocalHost()) {
+            const rawDraft = localStorage.getItem('bxks_preview_mirrors');
+            if (rawDraft) {
+              try {
+                const draft = JSON.parse(rawDraft);
+                const diskTime = new Date(data.updatedAt || 0).getTime();
+                const draftTime = new Date(draft.updatedAt || 0).getTime();
+                if (diskTime >= draftTime) {
+                  applyAllData(data);
+                } else {
+                  applyAllData(draft);
+                }
+                return;
+              } catch (e) {}
+            }
+          }
+          applyAllData(data);
         })
-        .catch(() => { /* Keep the built-in list when the JSON is missing or malformed. */ });
+        .catch(() => { /* Keep the built-in list or preview draft when the JSON is missing or malformed. */ });
 
       // First-time User Hint Logic
       (function initFirstTimeHint() {
