@@ -15,7 +15,7 @@
 
 ## ✨ 核心功能
 
-- **主流影子图书馆一站式整合**：集成 Z-Library、Anna’s Archive、Libgen、Bookracy、WeLib、OceanofPDF 等主流电子书与文献资源库，无需多站来回切换。
+- **主流影子图书馆一站式整合**：集成 Z-Library、Anna’s Archive、Libgen、Bookracy、WeLib、OceanofPDF、苦瓜书盘、尔书网 等主流电子书与文献资源库，无需多站来回切换。
 - **单引擎检索与一键聚合搜索**：
   - 支持快捷切换指定搜索引擎进行定向检索；
   - 提供「聚合搜索」功能，一键在新标签页中同时发起各大平台检索，全面提升查书找书效率。

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="dark light" />
   <title>不想看书 - 聚合主流「影子图书馆」，你的一站式找书平台</title>
-  <meta name="description" content="不想看书 — 聚合主流「影子图书馆」，你的一站式找书平台。集成 Z-Library、Anna’s Archive、Libgen、Bookracy、WeLib、OceanofPDF 等电子书库，支持一键多源聚合搜索与最新可用镜像导航。" />
+  <meta name="description" content="不想看书 — 聚合主流「影子图书馆」，你的一站式找书平台。集成 Z-Library、Anna’s Archive、Libgen、Bookracy、WeLib、OceanofPDF、苦瓜书盘、尔书网 等电子书库，支持一键多源聚合搜索与最新可用镜像导航。" />
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" />
@@ -537,7 +537,7 @@
       padding: clamp(24px, 6vh, 64px) 20px clamp(16px, 3vh, 40px);
     }
 
-    /* 移动端键盘激活时：临时允许页面纵向滚动到底部，由底部锚点精准设定页脚与视口底边的距离 */
+    /* 移动端聚焦输入框激活键盘时：临时允许页面纵向原生滚动，适配软键盘弹起 */
     html.kb-open {
       overflow-y: auto !important;
       overflow-x: hidden !important;
@@ -557,33 +557,6 @@
       height: auto !important;
       min-height: 100% !important;
       overflow: visible !important;
-      padding-bottom: 0 !important;
-    }
-
-    /* 移动端软键盘底部间距锚点：高度由脚本通用适配，确保页脚距视口底边与截图完全一致（26px） */
-    .kb-scroll-anchor {
-      display: none;
-      width: 100%;
-      height: 0;
-      margin: 0;
-      padding: 0;
-      border: 0;
-      flex-shrink: 0;
-      pointer-events: none;
-      visibility: hidden;
-    }
-    html.kb-open .kb-scroll-anchor {
-      display: block;
-      height: var(--kb-bottom-space, 26px);
-      order: 5;
-    }
-    html.kb-open .app-footer {
-      margin: 0 !important;
-      padding: 0 !important;
-    }
-    html.kb-open .footer-links {
-      margin: 0 !important;
-      padding: 0 !important;
     }
 
     /* Header Section */
@@ -767,8 +740,11 @@
       left: 5px;
       min-width: 196px;
       max-width: calc(100vw - 28px);
-      max-height: calc(100vh - 120px);
+      max-height: calc(100vh - 90px);
+      max-height: calc(100dvh - 90px);
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
       box-sizing: border-box;
       background: var(--search-bg);
       border: 1px solid var(--search-border);
@@ -958,17 +934,21 @@
       position: relative;
       width: 100%;
       max-width: 440px;
-      max-height: calc(100vh - 40px);
+      height: auto;
+      max-height: calc(100vh - 36px);
+      max-height: calc(100dvh - 36px);
       background: var(--search-bg);
       border: 1px solid var(--search-border);
       border-radius: 20px;
-      padding: 22px 24px;
+      padding: 18px 20px;
       box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.25);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       display: flex;
       flex-direction: column;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
       transform: scale(0.96) translateY(8px);
       transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
       box-sizing: border-box;
@@ -1215,14 +1195,14 @@
     .aggregate-engine-list {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5px;
     }
 
     .aggregate-engine-item {
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 9px 12px;
+      padding: 7px 12px;
       border-radius: 10px;
       background: var(--search-bg);
       border: 1px solid var(--search-border);
@@ -1368,6 +1348,14 @@
     .engine-active-icon.is-aggregate-engine,
     .aggregate-modal-title-icon {
       background: transparent !important;
+    }
+
+    img[src*="engine-ershu"] {
+      filter: invert(0.92);
+    }
+
+    [data-theme="light"] img[src*="engine-ershu"] {
+      filter: none;
     }
 
     @media (max-width: 480px) {
@@ -2017,7 +2005,7 @@
     /* Responsive layout for mobile devices */
     @media (max-width: 640px) {
       .app-container {
-        padding-top: max(40px, calc(env(safe-area-inset-top, 0px) + 38px));
+        padding-top: max(72px, calc(env(safe-area-inset-top, 0px) + 70px));
         padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
         padding-left: clamp(16px, 4vw, 24px);
         padding-right: clamp(16px, 4vw, 24px);
@@ -2112,7 +2100,7 @@
         top: auto;
         bottom: calc(100% + 10px);
         left: 5px;
-        max-height: min(320px, calc(100dvh - 180px));
+        max-height: calc(100dvh - 100px);
         transform: translateY(6px) scale(0.98);
       }
       .search-engine-selector.is-open .engine-dropdown {
@@ -2150,7 +2138,7 @@
         --book-scale: 0.82;
       }
       .app-container {
-        padding-top: max(38px, calc(env(safe-area-inset-top, 0px) + 36px));
+        padding-top: max(71px, calc(env(safe-area-inset-top, 0px) + 69px));
       }
       .engine-dropdown {
         left: 1px;
@@ -2332,18 +2320,6 @@
             </li>
             <li role="none">
               <a
-                href="https://welib.st"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="mirror-link"
-                role="menuitem"
-              >
-                <span class="mirror-domain">https://welib.st</span>
-                <span class="mirror-rec-text">WeLib</span>
-              </a>
-            </li>
-            <li role="none">
-              <a
                 href="https://libgen.li"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -2376,6 +2352,30 @@
               >
                 <span class="mirror-domain">https://oceanofpdf.com</span>
                 <span class="mirror-rec-text">OceanofPDF</span>
+              </a>
+            </li>
+            <li role="none">
+              <a
+                href="https://kgbook.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mirror-link"
+                role="menuitem"
+              >
+                <span class="mirror-domain">https://kgbook.com</span>
+                <span class="mirror-rec-text">苦瓜书盘</span>
+              </a>
+            </li>
+            <li role="none">
+              <a
+                href="https://ershu.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mirror-link"
+                role="menuitem"
+              >
+                <span class="mirror-domain">https://ershu.org</span>
+                <span class="mirror-rec-text">尔书网</span>
               </a>
             </li>
             <li role="none">
@@ -2586,8 +2586,6 @@
       </div>
     </footer>
 
-    <!-- Mobile Virtual Keyboard Bottom Spacing Anchor -->
-    <div class="kb-scroll-anchor" id="kb-scroll-anchor" aria-hidden="true"></div>
   </main>
 
   <!-- Aggregate Search Prompt & Launcher Modal (Centered dialog) -->
@@ -2735,7 +2733,13 @@
         'audiobook bay (abb)': 'assets/images/engine-abb.png',
         'audiobook bay': 'assets/images/engine-abb.png',
         'audiobookbay': 'assets/images/engine-abb.png',
-        'abb': 'assets/images/engine-abb.png'
+        'abb': 'assets/images/engine-abb.png',
+        '苦瓜书盘': 'assets/images/engine-kgbook.png',
+        '苦瓜': 'assets/images/engine-kgbook.png',
+        'kgbook': 'assets/images/engine-kgbook.png',
+        '尔书网': 'assets/images/engine-ershu.png',
+        '尔书': 'assets/images/engine-ershu.png',
+        'ershu': 'assets/images/engine-ershu.png'
       };
 
       function resolveEngineIcon(name, domain) {
@@ -2764,6 +2768,8 @@
         { name: "WeLib", domain: "https://welib.org", weight: 75, enabled: true },
         { name: "WeLib", domain: "https://welib.st", weight: 25, enabled: true },
         { name: "OceanofPDF", domain: "https://oceanofpdf.com", weight: 100, enabled: true },
+        { name: "苦瓜书盘", domain: "https://www.google.com/search?q=site:kgbook.com+", weight: 100, enabled: true },
+        { name: "尔书网", domain: "https://www.google.com/search?q=site:ershu.org+", weight: 100, enabled: true },
         { name: "Bookracy", domain: "https://bookracy.com", weight: 100, enabled: false }
       ];
 
@@ -2787,6 +2793,8 @@
        * - OceanofPDF:         https://{domain}/?s={query}
        * - AudioBook Bay (ABB): https://{domain}/?s={query}
        * - Z-Library:          https://{domain}/s/{query}
+       * - 苦瓜书盘:            https://www.google.com/search?q=site:kgbook.com+{query}
+       * - 尔书网:              https://www.google.com/search?q=site:ershu.org+{query}
        */
       function buildSearchUrl(engineName, baseDomain, query) {
         const domain = String(baseDomain || '').trim().replace(/\/\?s=?$/, '').replace(/\/+$/, '');
@@ -2794,6 +2802,33 @@
         const name = String(engineName || '').toLowerCase();
         const host = domain.toLowerCase();
 
+        // 1. Direct search template / Google query prefix (e.g. site: searches)
+        if (domain.includes('google.com/search') || domain.includes('site:')) {
+          if (domain.endsWith('+') || domain.endsWith('=')) {
+            return `${domain}${encodedQuery}`;
+          }
+          if (domain.includes('?q=') || domain.includes('&q=')) {
+            return `${domain}+${encodedQuery}`;
+          }
+          return `${domain}?q=${encodedQuery}`;
+        }
+        if (domain.includes('%s')) {
+          return domain.replace('%s', encodedQuery);
+        }
+
+        // 2. Named engine matches
+        if (name.includes('苦瓜') || host.includes('kgbook')) {
+          if (domain.includes('google.com')) {
+            return domain.endsWith('+') || domain.endsWith('=') ? `${domain}${encodedQuery}` : `${domain}+${encodedQuery}`;
+          }
+          return `https://www.google.com/search?q=site:kgbook.com+${encodedQuery}`;
+        }
+        if (name.includes('尔书') || host.includes('ershu')) {
+          if (domain.includes('google.com')) {
+            return domain.endsWith('+') || domain.endsWith('=') ? `${domain}${encodedQuery}` : `${domain}+${encodedQuery}`;
+          }
+          return `https://www.google.com/search?q=site:ershu.org+${encodedQuery}`;
+        }
         if (name.includes('anna') || host.includes('annas-archive') || host.includes('anna-archive')) {
           return `${domain}/search?q=${encodedQuery}`;
         }
@@ -3309,143 +3344,34 @@
       searchInput.addEventListener('input', handleInputChange);
       searchInput.addEventListener('change', handleInputChange);
 
-      // ── 移动端键盘激活时：通用多浏览器适配，临时允许自动滚动到底部并精准设定页脚与视口底边的距离 ──
+      // ── 移动端聚焦输入框激活键盘时：临时允许原生纵向滚动，失焦时平滑恢复锁定 ──
       const isMobileTouchDevice = () => {
         const hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
         const isSmallScreen = window.innerWidth <= 850 || window.innerHeight <= 520;
         return hasTouch && isSmallScreen;
       };
 
-      const kbAnchor = document.getElementById('kb-scroll-anchor');
       let lockScrollTimer = null;
-      let kbScrollTimer = null;
       let isKbActive = false;
-      let isUserInteracting = false; // 用户手指触摸/滑动中标志，防止脚本滚动与用户手势竞争造成卡顿
-
-      window.addEventListener('touchstart', () => {
-        isUserInteracting = true;
-        clearTimeout(kbScrollTimer);
-      }, { passive: true });
-
-      window.addEventListener('touchend', () => {
-        // 用户手指离开后稍作延时，等待原生惯性滑动基本平稳
-        setTimeout(() => {
-          isUserInteracting = false;
-        }, 350);
-      }, { passive: true });
-
-      window.addEventListener('touchcancel', () => {
-        isUserInteracting = false;
-      }, { passive: true });
-
-      // 截图中页脚文字底边到浏览器可视视口底边的精准目标距离（26px，与截图完全一致）
-      const TARGET_FOOTER_BOTTOM_SPACE = 26;
-
-      // 跨浏览器通用计算：兼容 iOS WebKit（视口重叠遮挡型）与 Android Blink（视口收缩重排型）
-      function updateKbBottomSpace() {
-        try {
-          const vv = window.visualViewport;
-          let keyboardOverlap = 0;
-          if (vv) {
-            // 计算键盘及浏览器底栏对布局视口的实际遮挡高度（不要加 offsetTop，避免 iOS Safari 视口内滚动时误减）
-            keyboardOverlap = Math.max(0, window.innerHeight - vv.height);
-          }
-          // 底部锚点高度 = 目标可视距底距离(26px) + 软键盘实际遮挡高度
-          const totalSpace = Math.round(TARGET_FOOTER_BOTTOM_SPACE + keyboardOverlap);
-          document.documentElement.style.setProperty('--kb-bottom-space', totalSpace + 'px');
-          return totalSpace;
-        } catch (e) {
-          document.documentElement.style.setProperty('--kb-bottom-space', TARGET_FOOTER_BOTTOM_SPACE + 'px');
-          return TARGET_FOOTER_BOTTOM_SPACE;
-        }
-      }
-
-      function scrollToBottomSmoothly(isSmooth = true) {
-        // 当用户正在手动触摸滑动时，切勿强行执行 scrollTo，保证 120Hz 原生丝滑手势
-        if (!isKbActive || isUserInteracting) return;
-
-        updateKbBottomSpace();
-
-        const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        const scrollBehavior = (isSmooth && !prefersReducedMotion) ? 'smooth' : 'auto';
-
-        requestAnimationFrame(() => {
-          if (!isKbActive || isUserInteracting) return;
-
-          const vv = window.visualViewport;
-          const vh = vv ? vv.height : window.innerHeight;
-          const scrollEl = document.scrollingElement || document.documentElement || document.body;
-          const maxScroll = Math.max(
-            scrollEl.scrollHeight,
-            document.documentElement.scrollHeight,
-            document.body.scrollHeight
-          );
-
-          try {
-            window.scrollTo({ top: maxScroll, behavior: scrollBehavior });
-          } catch (e) {
-            window.scrollTo(0, maxScroll);
-          }
-
-          // 闭环精准校验：根据页脚文字元素的实际屏幕渲染坐标（getBoundingClientRect）与当前可视视口底边对比
-          // 彻底消除不同浏览器（iOS Safari 底栏、Brave、Chrome、Android 等）的视口度量差异，确保视口底边到页脚文字绝对统一
-          requestAnimationFrame(() => {
-            if (!isKbActive || isUserInteracting) return;
-            const footerText = document.querySelector('.footer-links') || document.querySelector('.app-footer');
-            if (footerText) {
-              const rect = footerText.getBoundingClientRect();
-              const actualBottom = rect.bottom;
-              const desiredBottom = vh - TARGET_FOOTER_BOTTOM_SPACE;
-              const diff = Math.round(actualBottom - desiredBottom);
-              if (Math.abs(diff) >= 1) {
-                const targetScrollY = Math.max(0, Math.round(window.scrollY + diff));
-                try {
-                  window.scrollTo({ top: targetScrollY, behavior: scrollBehavior });
-                } catch (err) {
-                  window.scrollTo(0, targetScrollY);
-                }
-              }
-            }
-          });
-        });
-      }
 
       function unlockScroll() {
         clearTimeout(lockScrollTimer);
-        clearTimeout(kbScrollTimer);
         isKbActive = true;
-
         document.documentElement.classList.add('kb-open');
-        updateKbBottomSpace();
-
-        // 软键盘弹起多阶段滚动对齐：覆盖各主流浏览器软键盘展开过程（通常耗时 200~350ms）
-        scrollToBottomSmoothly(false); // 立即滚动保证视口就位
-        kbScrollTimer = setTimeout(() => {
-          scrollToBottomSmoothly(false);
-        }, 100);
-
-        setTimeout(() => {
-          if (isKbActive) {
-            scrollToBottomSmoothly(true);
+        // 原生聚焦后让浏览器自然滚动对齐；若浏览器未自动滚入可视区，温和配合原生平滑滚动
+        requestAnimationFrame(() => {
+          if (searchInput && document.activeElement === searchInput) {
+            try {
+              searchInput.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            } catch (e) {
+              try { searchInput.scrollIntoView(false); } catch (err) {}
+            }
           }
-        }, 250);
-
-        setTimeout(() => {
-          if (isKbActive) {
-            scrollToBottomSmoothly(true);
-          }
-        }, 400);
-
-        setTimeout(() => {
-          if (isKbActive) {
-            scrollToBottomSmoothly(true);
-          }
-        }, 550);
+        });
       }
 
       function lockScroll() {
         clearTimeout(lockScrollTimer);
-        clearTimeout(kbScrollTimer);
         isKbActive = false;
 
         // 延迟恢复锁定：blur 先于 click 触发，保留 180ms 避免快速点击按钮/链接时重排落空
@@ -3466,7 +3392,6 @@
           setTimeout(() => {
             if (!isKbActive) {
               document.documentElement.classList.remove('kb-open');
-              document.documentElement.style.removeProperty('--kb-bottom-space');
               document.body.style.overflow = '';
             }
           }, 240);
@@ -3479,7 +3404,6 @@
           if (isMobileTouchDevice()) {
             clearTimeout(lockScrollTimer);
             document.documentElement.classList.add('kb-open');
-            updateKbBottomSpace();
           }
         });
 
@@ -3494,22 +3418,6 @@
             lockScroll();
           }
         });
-
-        if (window.visualViewport) {
-          window.visualViewport.addEventListener('resize', () => {
-            if (isKbActive && !isUserInteracting) {
-              clearTimeout(kbScrollTimer);
-              kbScrollTimer = setTimeout(() => scrollToBottomSmoothly(true), 60);
-            }
-          }, { passive: true });
-        }
-
-        window.addEventListener('resize', () => {
-          if (isKbActive && !isUserInteracting) {
-            clearTimeout(kbScrollTimer);
-            kbScrollTimer = setTimeout(() => scrollToBottomSmoothly(true), 80);
-          }
-        }, { passive: true });
       }
       // ────────────────────────────────────────────────────────────────────
 
@@ -3688,10 +3596,8 @@
 
         // 取消移动端视口恢复定时器，避免背景滚动或重排导致弹窗输入框失焦与软键盘意外收起
         clearTimeout(lockScrollTimer);
-        clearTimeout(kbScrollTimer);
         isKbActive = false;
         document.documentElement.classList.remove('kb-open');
-        document.documentElement.style.removeProperty('--kb-bottom-space');
 
         // Notice: Only show to user twice, then automatically disappear (unless browser data is cleared)
         let noticeShownCount = 0;
@@ -3737,7 +3643,12 @@
             : '';
           let displayDomain = '';
           try {
-            displayDomain = new URL(domain).hostname;
+            if (domain.includes('site:')) {
+              const m = domain.match(/site:([a-zA-Z0-9.-]+)/i);
+              displayDomain = m ? m[1] : new URL(domain).hostname;
+            } else {
+              displayDomain = new URL(domain).hostname;
+            }
           } catch (e) {
             displayDomain = domain;
           }
@@ -4469,6 +4380,8 @@
               else if (d.includes('welib')) name = 'WeLib';
               else if (d.includes('oceanofpdf')) name = 'OceanofPDF';
               else if (d.includes('audiobookbay') || d.includes('abb')) name = 'AudioBook Bay (ABB)';
+              else if (d.includes('kgbook') || d.includes('苦瓜')) name = '苦瓜书盘';
+              else if (d.includes('ershu') || d.includes('尔书')) name = '尔书网';
               else name = 'Z-Library';
             }
             return {

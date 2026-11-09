@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-09T05:43:25Z",
+  "updatedAt": "2026-11-09T10:35:16Z",
   "dropdown": {
     "title": "「影子图书馆」网址列表",
     "tip": "点击访问"
@@ -39,7 +39,7 @@
     {
       "url": "https://welib.st",
       "label": "WeLib",
-      "enabled": true
+      "enabled": false
     },
     {
       "url": "https://bookracy.com/",
@@ -59,6 +59,16 @@
     {
       "url": "https://oceanofpdf.com",
       "label": "OceanofPDF",
+      "enabled": true
+    },
+    {
+      "url": "https://kgbook.com",
+      "label": "苦瓜书盘",
+      "enabled": true
+    },
+    {
+      "url": "https://ershu.org",
+      "label": "尔书网",
       "enabled": true
     },
     {
@@ -151,6 +161,18 @@
     {
       "name": "OceanofPDF",
       "domain": "https://oceanofpdf.com",
+      "weight": 100,
+      "enabled": true
+    },
+    {
+      "name": "苦瓜书盘",
+      "domain": "https://www.google.com/search?q=site:kgbook.com+",
+      "weight": 100,
+      "enabled": true
+    },
+    {
+      "name": "尔书网",
+      "domain": "https://www.google.com/search?q=site:ershu.org+",
       "weight": 100,
       "enabled": true
     },

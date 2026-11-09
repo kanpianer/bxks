@@ -455,13 +455,15 @@
     <!-- 2. Search routing -->
     <section class="panel">
       <h2>搜索引擎与分发权重</h2>
-      <p class="desc">为不同搜索引擎网址设置所属网站名称（如 Anna’s Archive、Libgen、Bookracy、WeLib、OceanofPDF 等），同一网站名称下的多个网址按权重自动计算组内分发比例；首页可通过放大镜图标下拉切换不同的搜索引擎。</p>
+      <p class="desc">为不同搜索引擎网址设置所属网站名称（如 Anna’s Archive、Libgen、Bookracy、WeLib、OceanofPDF、苦瓜书盘、尔书网 等），同一网站名称下的多个网址按权重自动计算组内分发比例；首页可通过放大镜图标下拉切换不同的搜索引擎。</p>
       <datalist id="engine-name-suggestions">
         <option value="Anna’s Archive"></option>
         <option value="Libgen"></option>
         <option value="Bookracy"></option>
         <option value="WeLib"></option>
         <option value="OceanofPDF"></option>
+        <option value="苦瓜书盘"></option>
+        <option value="尔书网"></option>
         <option value="Z-Library"></option>
       </datalist>
       <div class="rows" id="engine-rows"></div>
@@ -1236,6 +1238,10 @@
               defaultName = 'OceanofPDF';
             } else if (domain.includes('audiobookbay') || domain.includes('abb')) {
               defaultName = 'AudioBook Bay (ABB)';
+            } else if (domain.includes('kgbook') || defaultName.includes('苦瓜')) {
+              defaultName = '苦瓜书盘';
+            } else if (domain.includes('ershu') || defaultName.includes('尔书')) {
+              defaultName = '尔书网';
             }
 
             state.searchEngines.push({ name: defaultName, domain: domain, weight: 25, enabled: true });
@@ -1338,6 +1344,8 @@
             else if (d.includes('welib')) name = 'WeLib';
             else if (d.includes('oceanofpdf')) name = 'OceanofPDF';
             else if (d.includes('audiobookbay') || d.includes('abb')) name = 'AudioBook Bay (ABB)';
+            else if (d.includes('kgbook') || d.includes('苦瓜')) name = '苦瓜书盘';
+            else if (d.includes('ershu') || d.includes('尔书')) name = '尔书网';
             else name = 'Z-Library';
           }
           return {
