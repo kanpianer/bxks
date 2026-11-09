@@ -2266,12 +2266,12 @@
         >不想看书</h1>
 
         <!-- First-time User Hint Tooltip (placed below title) -->
-        <div class="title-hint-tooltip" id="title-hint-tooltip" role="tooltip" aria-hidden="true" title="点击展开镜像列表">
+        <div class="title-hint-tooltip" id="title-hint-tooltip" role="tooltip" aria-hidden="true" title="点击查看各大影子图书馆可用网址">
           <svg class="hint-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <line x1="12" y1="19" x2="12" y2="5"></line>
             <polyline points="5 12 12 5 19 12"></polyline>
           </svg>
-          <span class="hint-text">点击标题「不想看书」可展开镜像网站</span>
+          <span class="hint-text">点击标题查看各大影子图书馆可用网址</span>
           <button type="button" class="hint-close-btn" id="hint-close-btn" aria-label="关闭提示">✕</button>
         </div>
 
@@ -2282,18 +2282,6 @@
             <span class="mirror-header-tip">点击访问</span>
           </div>
           <ul class="mirror-list">
-            <li role="none">
-              <a
-                href="https://libb.la"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="mirror-link"
-                role="menuitem"
-              >
-                <span class="mirror-domain">https://libb.la</span>
-                <span class="mirror-rec-text">没墙</span>
-              </a>
-            </li>
             <li role="none">
               <a
                 href="https://zh.swe101.ru"
@@ -2584,16 +2572,16 @@
     <!-- Footer Related Links -->
     <footer class="app-footer" aria-label="相关站点链接">
       <div class="footer-links" id="footer-links">
+        <a href="https://jiakuan.link/resip" target="_blank" rel="noopener noreferrer" class="footer-link">
+          <span class="footer-link-text">家宽机场·RESIP</span>
+        </a>
+        <span class="footer-sep" aria-hidden="true">、</span>
         <a href="https://bxkp.org" target="_blank" rel="noopener noreferrer" class="footer-link">
           <span class="footer-link-text">不想看片</span>
         </a>
         <span class="footer-sep" aria-hidden="true">、</span>
         <a href="https://fan.jiakuan.link" target="_blank" rel="noopener noreferrer" class="footer-link">
           <span class="footer-link-text">不想翻墙</span>
-        </a>
-        <span class="footer-sep" aria-hidden="true">、</span>
-        <a href="https://jiakuan.link/resip" target="_blank" rel="noopener noreferrer" class="footer-link">
-          <span class="footer-link-text">全家宽机场·RESIP</span>
         </a>
       </div>
     </footer>
@@ -2765,7 +2753,6 @@
 
       // Default built-in search engines configuration (聚合搜索 as default)
       let SEARCH_ENGINE_CONFIGS = [
-        { name: "Z-Library", domain: "https://libb.la", weight: 75, enabled: true },
         { name: "Z-Library", domain: "https://z-lib.sk", weight: 25, enabled: true },
         { name: "Z-Library", domain: "https://zh.101isfj.ru", weight: 25, enabled: false },
         { name: "Anna’s Archive", domain: "https://annas-archive.pk", weight: 75, enabled: true },

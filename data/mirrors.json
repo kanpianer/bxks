@@ -1,16 +1,11 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-06T14:06:09Z",
+  "updatedAt": "2026-11-09T05:43:25Z",
   "dropdown": {
     "title": "「影子图书馆」网址列表",
     "tip": "点击访问"
   },
   "mirrors": [
-    {
-      "url": "https://libb.la",
-      "label": "没墙",
-      "enabled": true
-    },
     {
       "url": "https://zh.swe101.ru",
       "label": "没墙",
@@ -95,12 +90,6 @@
   "searchEngines": [
     {
       "name": "Z-Library",
-      "domain": "https://libb.la",
-      "weight": 75,
-      "enabled": true
-    },
-    {
-      "name": "Z-Library",
       "domain": "https://z-lib.sk",
       "weight": 25,
       "enabled": true
@@ -174,6 +163,12 @@
   ],
   "footerLinks": [
     {
+      "text": "家宽机场·RESIP",
+      "url": "https://jiakuan.link/resip",
+      "icon": "",
+      "enabled": true
+    },
+    {
       "text": "不想看片",
       "url": "https://bxkp.org",
       "icon": "",
@@ -182,12 +177,6 @@
     {
       "text": "不想翻墙",
       "url": "https://fan.jiakuan.link",
-      "icon": "",
-      "enabled": true
-    },
-    {
-      "text": "全家宽机场·RESIP",
-      "url": "https://jiakuan.link/resip",
       "icon": "",
       "enabled": true
     }
