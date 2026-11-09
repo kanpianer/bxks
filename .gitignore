@@ -1,2 +1,4 @@
 .dsh-tmp/
 .cms-backups/
+__pycache__/
+*.pyc

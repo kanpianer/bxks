@@ -357,46 +357,73 @@
       margin-left: 10px;
     }
 
-    /* First-time User Hint Tooltip */
+    /* First-time User Hint Tooltip (Placed below title, prominent & clean) */
     .title-hint-tooltip {
       position: absolute;
-      bottom: calc(100% + 12px);
+      top: calc(100% + 10px);
+      bottom: auto;
       left: 50%;
-      transform: translateX(-50%) translateY(6px);
-      background: var(--search-bg);
-      border: 1px solid var(--search-border);
+      transform: translateX(-50%) translateY(-6px);
+      background: rgba(28, 29, 34, 0.96);
+      border: 1px solid rgba(255, 255, 255, 0.22);
       border-radius: 9999px;
-      padding: 5px 10px 5px 14px;
+      padding: 7px 14px 7px 15px;
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      font-size: 0.82rem;
-      color: var(--fg);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.32);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: #ffffff;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08), 0 0 16px rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       white-space: nowrap;
       z-index: 90;
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
+      cursor: pointer;
       transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s ease;
       user-select: none;
     }
 
     [data-theme="light"] .title-hint-tooltip {
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.1);
+      background: rgba(255, 255, 255, 0.98);
+      border: 1px solid rgba(0, 0, 0, 0.16);
+      color: #18181b;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08);
     }
 
+    /* Pointing arrow pointing UP towards the title "不想看书" */
     .title-hint-tooltip::after {
       content: '';
       position: absolute;
-      top: 100%;
+      bottom: 100%;
       left: 50%;
       transform: translateX(-50%);
-      border-width: 5px 5px 0 5px;
+      border-width: 0 6px 6px 6px;
       border-style: solid;
-      border-color: var(--search-border) transparent transparent transparent;
+      border-color: transparent transparent rgba(255, 255, 255, 0.22) transparent;
+    }
+
+    .title-hint-tooltip::before {
+      content: '';
+      position: absolute;
+      bottom: calc(100% - 1px);
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 0 5px 5px 5px;
+      border-style: solid;
+      border-color: transparent transparent rgba(28, 29, 34, 0.96) transparent;
+      z-index: 1;
+    }
+
+    [data-theme="light"] .title-hint-tooltip::after {
+      border-color: transparent transparent rgba(0, 0, 0, 0.16) transparent;
+    }
+
+    [data-theme="light"] .title-hint-tooltip::before {
+      border-color: transparent transparent rgba(255, 255, 255, 0.98) transparent;
     }
 
     .title-hint-tooltip.is-visible {
@@ -412,34 +439,43 @@
         transform: translateX(-50%) translateY(0);
       }
       50% {
-        transform: translateX(-50%) translateY(-4px);
+        transform: translateX(-50%) translateY(3px);
       }
     }
 
+    .hint-icon {
+      width: 15px;
+      height: 15px;
+      flex-shrink: 0;
+      color: var(--fg);
+      opacity: 0.9;
+    }
+
     .hint-text {
-      font-weight: 400;
+      font-weight: 500;
       letter-spacing: 0.02em;
-      line-height: 1;
+      line-height: 1.2;
     }
 
     .hint-close-btn {
       background: transparent;
       border: none;
-      padding: 0 2px;
+      padding: 0 2px 0 4px;
       margin: 0;
       color: var(--fg-muted);
       cursor: pointer;
-      font-size: 0.82rem;
+      font-size: 0.92rem;
       line-height: 1;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      transition: color 0.15s ease;
+      transition: color 0.15s ease, transform 0.15s ease;
       outline: none;
     }
 
     .hint-close-btn:hover {
       color: var(--fg);
+      transform: scale(1.15);
     }
 
     [data-theme="light"] .search-form {
@@ -563,6 +599,11 @@
       position: relative;
       display: inline-block;
       margin: 0 0 10px;
+      transition: margin-bottom 0.25s ease;
+    }
+
+    .brand-title-wrapper.has-hint {
+      margin-bottom: 52px;
     }
 
     .brand-title {
@@ -2016,6 +2057,10 @@
         margin: 0 0 4px;
       }
 
+      .brand-title-wrapper.has-hint {
+        margin-bottom: 46px;
+      }
+
       .brand-title {
         font-size: clamp(1.85rem, 5.8vw, 2.3rem);
       }
@@ -2137,9 +2182,14 @@
         font-size: 0.8rem;
       }
       .title-hint-tooltip {
-        font-size: 0.74rem;
-        padding: 4px 8px 4px 10px;
-        bottom: calc(100% + 8px);
+        font-size: 0.86rem;
+        padding: 5px 10px 5px 12px;
+        top: calc(100% + 8px);
+        bottom: auto;
+      }
+      .hint-icon {
+        width: 13px;
+        height: 13px;
       }
       .brand-title {
         font-size: 2.2rem;
@@ -2205,12 +2255,6 @@
     <!-- Header Section with Mirror Sites Dropdown attached to Main Title -->
     <header class="header">
       <div class="brand-title-wrapper" id="brand-title-wrapper">
-        <!-- First-time User Hint Tooltip -->
-        <div class="title-hint-tooltip" id="title-hint-tooltip" role="tooltip" aria-hidden="true">
-          <span class="hint-text">点击标题「不想看书」可弹出镜像列表</span>
-          <button type="button" class="hint-close-btn" id="hint-close-btn" aria-label="关闭提示">✕</button>
-        </div>
-
         <h1
           class="brand-title"
           id="brand-title"
@@ -2221,10 +2265,20 @@
           title="点击或悬停查看可用镜像站点"
         >不想看书</h1>
 
+        <!-- First-time User Hint Tooltip (placed below title) -->
+        <div class="title-hint-tooltip" id="title-hint-tooltip" role="tooltip" aria-hidden="true" title="点击展开镜像列表">
+          <svg class="hint-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="12" y1="19" x2="12" y2="5"></line>
+            <polyline points="5 12 12 5 19 12"></polyline>
+          </svg>
+          <span class="hint-text">点击标题「不想看书」可展开镜像网站</span>
+          <button type="button" class="hint-close-btn" id="hint-close-btn" aria-label="关闭提示">✕</button>
+        </div>
+
         <!-- Dropdown Mirror Websites Panel -->
         <div class="mirror-dropdown" id="mirror-dropdown" role="menu" aria-label="可用镜像网站列表">
           <div class="mirror-dropdown-header">
-            <span class="mirror-header-title">Z-Library 镜像列表</span>
+            <span class="mirror-header-title">「影子图书馆」网址列表</span>
             <span class="mirror-header-tip">点击访问</span>
           </div>
           <ul class="mirror-list">
@@ -2242,18 +2296,6 @@
             </li>
             <li role="none">
               <a
-                href="https://z-library.website"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="mirror-link"
-                role="menuitem"
-              >
-                <span class="mirror-domain">https://z-library.website</span>
-                <span class="mirror-rec-text">没墙</span>
-              </a>
-            </li>
-            <li role="none">
-              <a
                 href="https://zh.swe101.ru"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -2266,58 +2308,14 @@
             </li>
             <li role="none">
               <a
-                href="https://zh.101isfj.ru"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="mirror-link"
-                role="menuitem"
-              >
-                <span class="mirror-domain">https://zh.101isfj.ru</span>
-                <span class="mirror-rec-text">没墙</span>
-              </a>
-            </li>
-            <li role="none">
-              <a
-                href="https://1lib.sk"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="mirror-link"
-                role="menuitem"
-              >
-                <span class="mirror-domain">https://1lib.sk</span>
-              </a>
-            </li>
-            <li role="none">
-              <a
-                href="https://z-lib.sk/"
+                href="https://z-lib.sk"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="mirror-link"
                 role="menuitem"
               >
                 <span class="mirror-domain">https://z-lib.sk</span>
-              </a>
-            </li>
-            <li role="none">
-              <a
-                href="https://z-lib.by"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="mirror-link"
-                role="menuitem"
-              >
-                <span class="mirror-domain">https://z-lib.by</span>
-              </a>
-            </li>
-            <li role="none">
-              <a
-                href="https://z-lib.gd"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="mirror-link"
-                role="menuitem"
-              >
-                <span class="mirror-domain">https://z-lib.gd</span>
+                <span class="mirror-rec-text">需代理</span>
               </a>
             </li>
             <li role="none">
@@ -2329,7 +2327,67 @@
                 role="menuitem"
               >
                 <span class="mirror-domain">https://library-access.sk</span>
-                <span class="mirror-rec-text">官方防丢渠道</span>
+                <span class="mirror-rec-text">Z-lib官方防丢渠道</span>
+              </a>
+            </li>
+            <li role="none">
+              <a
+                href="https://welib.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mirror-link"
+                role="menuitem"
+              >
+                <span class="mirror-domain">https://welib.org</span>
+                <span class="mirror-rec-text">WeLib</span>
+              </a>
+            </li>
+            <li role="none">
+              <a
+                href="https://welib.st"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mirror-link"
+                role="menuitem"
+              >
+                <span class="mirror-domain">https://welib.st</span>
+                <span class="mirror-rec-text">WeLib</span>
+              </a>
+            </li>
+            <li role="none">
+              <a
+                href="https://libgen.li"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mirror-link"
+                role="menuitem"
+              >
+                <span class="mirror-domain">https://libgen.li</span>
+                <span class="mirror-rec-text">Library Genesis</span>
+              </a>
+            </li>
+            <li role="none">
+              <a
+                href="https://annas-archive.pk/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mirror-link"
+                role="menuitem"
+              >
+                <span class="mirror-domain">https://annas-archive.pk</span>
+                <span class="mirror-rec-text">Anna’s Archive</span>
+              </a>
+            </li>
+            <li role="none">
+              <a
+                href="https://oceanofpdf.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mirror-link"
+                role="menuitem"
+              >
+                <span class="mirror-domain">https://oceanofpdf.com</span>
+                <span class="mirror-rec-text">OceanofPDF</span>
               </a>
             </li>
             <li role="none">
@@ -2358,14 +2416,14 @@
             </li>
             <li role="none">
               <a
-                href="https://oceanofpdf.com"
+                href="https://open-slum.org"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="mirror-link"
                 role="menuitem"
               >
-                <span class="mirror-domain">https://oceanofpdf.com</span>
-                <span class="mirror-rec-text">OceanofPDF</span>
+                <span class="mirror-domain">https://open-slum.org</span>
+                <span class="mirror-rec-text">SLUM[影子图书馆监测]</span>
               </a>
             </li>
             <li role="none">
@@ -2377,7 +2435,7 @@
                 role="menuitem"
               >
                 <span class="mirror-domain">https://bxks.sld.tw</span>
-                <span class="mirror-rec-text">本站镜像</span>
+                <span class="mirror-rec-text">本站网址</span>
               </a>
             </li>
             <li role="none">
@@ -2389,7 +2447,7 @@
                 role="menuitem"
               >
                 <span class="mirror-domain">https://bxks.pages.dev</span>
-                <span class="mirror-rec-text">本站镜像</span>
+                <span class="mirror-rec-text">本站网址</span>
               </a>
             </li>
           </ul>
@@ -2527,13 +2585,15 @@
     <footer class="app-footer" aria-label="相关站点链接">
       <div class="footer-links" id="footer-links">
         <a href="https://bxkp.org" target="_blank" rel="noopener noreferrer" class="footer-link">
-          <img src="https://bxkp.org/favicon.svg" class="footer-link-icon" alt="" aria-hidden="true" onerror="this.style.display='none'" />
-          <span class="footer-link-text">不想看片：bxkp.org</span>
+          <span class="footer-link-text">不想看片</span>
         </a>
         <span class="footer-sep" aria-hidden="true">、</span>
         <a href="https://fan.jiakuan.link" target="_blank" rel="noopener noreferrer" class="footer-link">
-          <img src="assets/images/jiakuan-icon.png" class="footer-link-icon" alt="" aria-hidden="true" onerror="this.style.display='none'" />
-          <span class="footer-link-text">不想翻墙：fan.jiakuan.link</span>
+          <span class="footer-link-text">不想翻墙</span>
+        </a>
+        <span class="footer-sep" aria-hidden="true">、</span>
+        <a href="https://jiakuan.link/resip" target="_blank" rel="noopener noreferrer" class="footer-link">
+          <span class="footer-link-text">全家宽机场·RESIP</span>
         </a>
       </div>
     </footer>
@@ -2705,19 +2765,19 @@
 
       // Default built-in search engines configuration (聚合搜索 as default)
       let SEARCH_ENGINE_CONFIGS = [
-        { name: 'Z-Library', domain: 'https://libb.la', weight: 50, enabled: true },
-        { name: 'Z-Library', domain: 'https://zh.swe101.ru', weight: 25, enabled: true },
-        { name: 'Z-Library', domain: 'https://zh.101isfj.ru', weight: 25, enabled: false },
-        { name: 'Anna’s Archive', domain: 'https://annas-archive.pk', weight: 34, enabled: true },
-        { name: 'Anna’s Archive', domain: 'https://annas-archive.gl', weight: 33, enabled: true },
-        { name: 'Anna’s Archive', domain: 'https://annas-archive.gd', weight: 33, enabled: true },
-        { name: 'Libgen', domain: 'https://libgen.li', weight: 40, enabled: true },
-        { name: 'Libgen', domain: 'https://libgen.la', weight: 30, enabled: true },
-        { name: 'Libgen', domain: 'https://libgen.vg', weight: 30, enabled: true },
-        { name: 'Bookracy', domain: 'https://bookracy.com', weight: 100, enabled: false },
-        { name: 'WeLib', domain: 'https://welib.org', weight: 50, enabled: true },
-        { name: 'WeLib', domain: 'https://welib.st', weight: 50, enabled: true },
-        { name: 'OceanofPDF', domain: 'https://oceanofpdf.com', weight: 100, enabled: true }
+        { name: "Z-Library", domain: "https://libb.la", weight: 75, enabled: true },
+        { name: "Z-Library", domain: "https://z-lib.sk", weight: 25, enabled: true },
+        { name: "Z-Library", domain: "https://zh.101isfj.ru", weight: 25, enabled: false },
+        { name: "Anna’s Archive", domain: "https://annas-archive.pk", weight: 75, enabled: true },
+        { name: "Anna’s Archive", domain: "https://annas-archive.gl", weight: 25, enabled: true },
+        { name: "Anna’s Archive", domain: "https://annas-archive.gd", weight: 33, enabled: false },
+        { name: "Libgen", domain: "https://libgen.li", weight: 75, enabled: true },
+        { name: "Libgen", domain: "https://libgen.la", weight: 25, enabled: true },
+        { name: "Libgen", domain: "https://libgen.vg", weight: 30, enabled: false },
+        { name: "WeLib", domain: "https://welib.org", weight: 75, enabled: true },
+        { name: "WeLib", domain: "https://welib.st", weight: 25, enabled: true },
+        { name: "OceanofPDF", domain: "https://oceanofpdf.com", weight: 100, enabled: true },
+        { name: "Bookracy", domain: "https://bookracy.com", weight: 100, enabled: false }
       ];
 
       const ACTIVE_ENGINE_KEY = 'bxks_active_engine_v2';
@@ -4522,6 +4582,23 @@
       renderEngineDropdown();
       updateActiveEngineUI();
 
+      // First-time visit: expand search engine dropdown by default
+      const FIRST_VISIT_ENGINE_KEY = 'bxks_first_visit_engine_shown';
+      (function initFirstVisitEngineDropdown() {
+        let hasShownEngine = false;
+        try {
+          hasShownEngine = !!localStorage.getItem(FIRST_VISIT_ENGINE_KEY);
+        } catch (e) {}
+
+        if (!hasShownEngine) {
+          try {
+            localStorage.setItem(FIRST_VISIT_ENGINE_KEY, '1');
+            localStorage.setItem(FIRST_FOCUS_ENGINE_KEY, '1');
+          } catch (e) {}
+          openEngineDropdown();
+        }
+      })();
+
       // In local preview environment, support instant cross-tab sync & draft preview
       if (isLocalHost()) {
         try {
@@ -4581,9 +4658,12 @@
         const HINT_KEY = 'bxks_mirror_hint_seen';
 
         function dismissHint() {
-          if (!hint.classList.contains('is-visible')) return;
+          if (!hint.classList.contains('is-visible') && !titleWrapper?.classList.contains('has-hint')) return;
           hint.classList.remove('is-visible');
           hint.setAttribute('aria-hidden', 'true');
+          if (titleWrapper) {
+            titleWrapper.classList.remove('has-hint');
+          }
           try {
             localStorage.setItem(HINT_KEY, '1');
           } catch (e) {}
@@ -4596,6 +4676,9 @@
         } catch (e) {}
 
         if (!hasSeen) {
+          if (titleWrapper) {
+            titleWrapper.classList.add('has-hint');
+          }
           // Show hint after a gentle entrance delay (600ms)
           setTimeout(() => {
             hint.classList.add('is-visible');
@@ -4608,6 +4691,19 @@
               dismissHint();
             });
           }
+
+          // Clicking the hint pill itself opens the mirror dropdown
+          hint.addEventListener('click', (e) => {
+            if (closeBtn && (e.target === closeBtn || closeBtn.contains(e.target))) {
+              return;
+            }
+            e.stopPropagation();
+            dismissHint();
+            if (titleWrapper) {
+              titleWrapper.classList.add('is-open');
+              if (title) title.setAttribute('aria-expanded', 'true');
+            }
+          });
 
           if (title) {
             title.addEventListener('click', dismissHint);

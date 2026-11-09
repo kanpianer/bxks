@@ -9,6 +9,8 @@
 import sys
 import os
 import json
+import socket
+import argparse
 from pathlib import Path
 from datetime import datetime
 from http.server import HTTPServer, SimpleHTTPRequestHandler
@@ -16,6 +18,14 @@ from http.server import HTTPServer, SimpleHTTPRequestHandler
 ROOT_DIR = Path(__file__).resolve().parent.parent
 DATA_FILE = ROOT_DIR / 'data' / 'mirrors.json'
 BACKUPS_DIR = ROOT_DIR / '.cms-backups'
+
+SCRIPTS_DIR = Path(__file__).resolve().parent
+if str(SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_DIR))
+try:
+    from sync_html import sync_html_fallback
+except ImportError:
+    sync_html_fallback = None
 
 class BXKSRequestHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -100,6 +110,12 @@ class BXKSRequestHandler(SimpleHTTPRequestHandler):
 
             print(f"[{datetime.now().strftime('%H:%M:%S')}] [CMS] 已成功保存到 {DATA_FILE.relative_to(ROOT_DIR)}（快照备份: {backup_file.name}）")
 
+            if sync_html_fallback:
+                try:
+                    sync_html_fallback(ROOT_DIR)
+                except Exception as sync_err:
+                    print(f"[{datetime.now().strftime('%H:%M:%S')}] [CMS Warning] 同步 index.html 失败: {sync_err}", file=sys.stderr)
+
             self.send_json(200, {
                 'success': True,
                 'path': str(DATA_FILE.relative_to(ROOT_DIR)),
@@ -110,14 +126,28 @@ class BXKSRequestHandler(SimpleHTTPRequestHandler):
             print(f"[CMS Error] {e}", file=sys.stderr)
             self.send_json(500, {'success': False, 'error': str(e)})
 
-def run(port=8080, bind='127.0.0.1'):
+def get_local_ip():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('223.5.5.5', 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return '127.0.0.1'
+
+def run(port=8080, bind='0.0.0.0'):
     server_address = (bind, port)
     httpd = HTTPServer(server_address, BXKSRequestHandler)
+    local_ip = get_local_ip()
+    display_host = local_ip if bind in ('0.0.0.0', '') else bind
     print(f"=================================================")
     print(f" 不想看书 (bxks) 本地预览与管理服务")
-    print(f" 主站首页:     http://{bind}:{port}/")
-    print(f" 镜像管理CMS:  http://{bind}:{port}/dtms/")
-    print(f" 本地落盘接口: http://{bind}:{port}/api/cms/save")
+    print(f" 本机访问:     http://127.0.0.1:{port}/")
+    print(f" 局域网访问:   http://{display_host}:{port}/")
+    print(f" 镜像管理CMS:  http://{display_host}:{port}/dtms/")
+    print(f" 本地落盘接口: http://{display_host}:{port}/api/cms/save")
+    print(f" 监听地址:     {bind}:{port}")
     print(f"=================================================")
     try:
         httpd.serve_forever()
@@ -126,11 +156,8 @@ def run(port=8080, bind='127.0.0.1'):
         httpd.server_close()
 
 if __name__ == '__main__':
-    port = 8080
-    bind = '127.0.0.1'
-    if len(sys.argv) > 1:
-        try:
-            port = int(sys.argv[1])
-        except ValueError:
-            pass
-    run(port=port, bind=bind)
+    parser = argparse.ArgumentParser(description="不想看书 (bxks) 本地预览与 CMS 开发服务")
+    parser.add_argument("port", nargs="?", type=int, default=8080, help="服务端口 (默认: 8080)")
+    parser.add_argument("--bind", "-b", default="0.0.0.0", help="监听 IP (默认: 0.0.0.0，开放局域网访问)")
+    args = parser.parse_args()
+    run(port=args.port, bind=args.bind)
